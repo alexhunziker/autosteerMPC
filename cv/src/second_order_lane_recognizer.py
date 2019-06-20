@@ -42,12 +42,17 @@ class SecondOrderLaneRecognizer(object):
         return lanes
 
 
-img = cv2.imread('resources/curve_1.jpg')
-# img = cv2.imread('resources/road_with_fixes.jpg')
-# img = cv2.imread('resources/light_curve_2.jpg')
-secondOrderLaneRecognizer = SecondOrderLaneRecognizer().process(img)
-curverad = secondOrderLaneRecognizer.get_curve_radius()
-print(curverad)
-result_img = secondOrderLaneRecognizer.visualize_lane()
-plt.imshow(result_img, cmap="hsv")
-plt.show()
+# Simplistic approach for testing
+if __name__ == "__main__":
+    mode = "picture"
+
+    if mode == "picture":
+        img = cv2.imread('resources/curve_1.jpg')
+        # img = cv2.imread('resources/road_with_fixes.jpg')
+        # img = cv2.imread('resources/light_curve_2.jpg')
+        secondOrderLaneRecognizer = SecondOrderLaneRecognizer().process(img)
+        curverad = secondOrderLaneRecognizer.get_curve_radius()
+        print(curverad)
+        result_img = secondOrderLaneRecognizer.visualize_lane()
+        plt.imshow(result_img, cmap="hsv")
+        plt.show()

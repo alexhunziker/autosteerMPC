@@ -5,7 +5,7 @@ import numpy as np
 
 
 class LaneRecognizer(object):
-    DEBUG = True
+    DEBUG = False
 
     DEFAULT_METERS_PER_PIXEL_X = 3.7 / 720
     DEFAULT_METERS_PER_PIXEL_Y = 30.5 / 720
@@ -45,7 +45,6 @@ class LaneRecognizer(object):
         nonzero = img.nonzero()
         nonzero_y_pixels = np.array(nonzero[0])
         nonzero_x_pixels = np.array(nonzero[1])
-        print(img.nonzero())
 
         # TODO: set values directly?
         current_left_x_position = left_starting_point
@@ -91,7 +90,6 @@ class LaneRecognizer(object):
                 current_right_x_position = np.int(np.mean(nonzero_x_pixels[non_zero_pixels_right]))
 
         left_lane_pixels = np.concatenate(left_lane_pixels)
-        print("Left lage pixels", left_lane_pixels)
         right_lane_pixels = np.concatenate(right_lane_pixels)
 
         # Extract pixel positions
@@ -103,7 +101,6 @@ class LaneRecognizer(object):
         # Fit second order polinomial
         left_fit = np.polyfit(left_y_lane_pixels, left_x_lane_pixels, 2)
         right_fit = np.polyfit(right_y_lane_pixels, right_x_lane_pixels, 2)
-        print(left_fit)
 
         # TODO: Maybe do a mean over past 10 polynomials, otherwise remove block
         self.left[0].append(left_fit[0])
@@ -146,15 +143,12 @@ class LaneRecognizer(object):
         right_fit_curve = np.polyfit(curve_pixels_y * self.meters_per_pixel_y,
                                      self.right_fitted_curve * self.meters_per_pixel_x,
                                      2)
-        print(self.meters_per_pixel_y)
-        print(left_fit_curve, "<- leftfitcurve")
 
         # Calculate radii
         left_curve_radius = ((1 + (2 * left_fit_curve[0] * lowest_y_pixel * self.meters_per_pixel_y + left_fit_curve[
             1]) ** 2) ** 1.5) / np.absolute((2 * left_fit_curve[0]))
         right_fit_radius = ((1 + (2 * right_fit_curve[0] * lowest_y_pixel * self.meters_per_pixel_y + right_fit_curve[
             1]) ** 2) ** 1.5) / np.absolute((2 * right_fit_curve[0]))
-        print(left_curve_radius, right_fit_radius)
 
         #  get center
         car_position = img.shape[1] / 2  # car assumed to be in the middle of image
