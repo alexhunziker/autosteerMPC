@@ -5,7 +5,7 @@ import numpy as np
 
 
 class LaneRecognizer(object):
-    DEBUG = False
+    DEBUG = True
 
     DEFAULT_METERS_PER_PIXEL_X = 3.7 / 720
     DEFAULT_METERS_PER_PIXEL_Y = 30.5 / 720
