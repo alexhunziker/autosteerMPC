@@ -1,4 +1,7 @@
-from lanes_curved_recognition import *
+from typing import List
+
+import cv2
+import numpy as np
 
 
 class LaneRecognizer(object):
@@ -14,8 +17,8 @@ class LaneRecognizer(object):
         self.left = [[], [], []]
         self.right = [[], [], []]
 
-        self.right_fitted_curve = [0]
-        self.left_fitted_curve = [0]
+        self.right_fitted_curve: List[float] = [0.0]
+        self.left_fitted_curve: List[float] = [0.0]
 
         self.meters_per_pixel_x = meters_per_pixel_x
         self.meters_per_pixel_y = meters_per_pixel_y
@@ -190,15 +193,3 @@ class LaneRecognizer(object):
         # Warp the image using OpenCV warpPerspective()
         warped = cv2.warpPerspective(img, M, dst_size)
         return warped
-
-
-img = cv2.imread('resources/curve_1.jpg')
-binary_img = CurvedLaneRecognizer().process(img)
-wrapped = ImageWarper.warp(binary_img)
-lane_recognizer: LaneRecognizer = LaneRecognizer()
-lane_recognizer.sliding_window(wrapped)
-curverad = lane_recognizer.fit_curve_worldspace(img)
-print(curverad)
-# img_ = lane_recognizer.draw_lanes(img)
-# plt.imshow(img_, cmap='hsv')
-# plt.show()

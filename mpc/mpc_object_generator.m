@@ -13,6 +13,7 @@ mpc1.MV(1).Max = 0.785398163397448;
 mpc1.MV(2).Min = -4;
 mpc1.MV(2).Max = 2;
 %% specify constraints for OV
+mpc1.OV(4).Min = 0;
 mpc1.OV(4).Max = 4;
 %% specify weights
 mpc1.Weights.MV = [0 0];
