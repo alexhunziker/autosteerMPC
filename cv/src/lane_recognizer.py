@@ -1,16 +1,15 @@
 from lanes_curved_recognition import *
-import cv2
-
-from image_warper import *
-from lanes_curved_recognition import *
 
 
 class LaneRecognizer(object):
-    DEBUG = True
+    DEBUG = False
+
+    DEFAULT_METERS_PER_PIXEL_X = 3.7 / 720
+    DEFAULT_METERS_PER_PIXEL_Y = 30.5 / 720
 
     def __init__(self,
-                 meters_per_pixel_x=30.5 / 720,  # meters per pixel in y dimension
-                 meters_per_pixel_y=3.7 / 720  # meters per pixel in x dimension
+                 meters_per_pixel_x=DEFAULT_METERS_PER_PIXEL_X,
+                 meters_per_pixel_y=DEFAULT_METERS_PER_PIXEL_Y
                  ):
         self.left = [[], [], []]
         self.right = [[], [], []]
@@ -134,22 +133,23 @@ class LaneRecognizer(object):
 
     def fit_curve_worldspace(self, img):
         img_height: int = img.shape[0]
-        ploty: np.ndarray = np.linspace(0, img_height - 1, img_height)
-        y_eval = np.max(ploty)  # ?? 719
+        lowest_y_pixel: float = img_height - 1  # "closest y pixel of curve to current position"
+        curve_pixels_y: np.ndarray = np.linspace(0, lowest_y_pixel, img_height)
 
-        # Fit polinomial in wolrld space
-        left_fit_curve = np.polyfit(ploty * self.meters_per_pixel_y,
+        # Fit polynomial in wolrld space
+        left_fit_curve = np.polyfit(curve_pixels_y * self.meters_per_pixel_y,
                                     self.left_fitted_curve * self.meters_per_pixel_x,
                                     2)
-        right_fit_curve = np.polyfit(ploty * self.meters_per_pixel_y,
+        right_fit_curve = np.polyfit(curve_pixels_y * self.meters_per_pixel_y,
                                      self.right_fitted_curve * self.meters_per_pixel_x,
                                      2)
+        print(self.meters_per_pixel_y)
         print(left_fit_curve, "<- leftfitcurve")
 
         # Calculate radii
-        left_curve_radius = ((1 + (2 * left_fit_curve[0] * y_eval * self.meters_per_pixel_y + left_fit_curve[
+        left_curve_radius = ((1 + (2 * left_fit_curve[0] * lowest_y_pixel * self.meters_per_pixel_y + left_fit_curve[
             1]) ** 2) ** 1.5) / np.absolute((2 * left_fit_curve[0]))
-        right_fit_radius = ((1 + (2 * right_fit_curve[0] * y_eval * self.meters_per_pixel_y + right_fit_curve[
+        right_fit_radius = ((1 + (2 * right_fit_curve[0] * lowest_y_pixel * self.meters_per_pixel_y + right_fit_curve[
             1]) ** 2) ** 1.5) / np.absolute((2 * right_fit_curve[0]))
         print(left_curve_radius, right_fit_radius)
 
@@ -157,11 +157,8 @@ class LaneRecognizer(object):
         car_position = img.shape[1] / 2  # car assumed to be in the middle of image
         l_fit_x_int = left_fit_curve[0] * img.shape[0] ** 2 + left_fit_curve[1] * img.shape[0] + left_fit_curve[2]
         r_fit_x_int = right_fit_curve[0] * img.shape[0] ** 2 + right_fit_curve[1] * img.shape[0] + right_fit_curve[2]
-        print(l_fit_x_int, r_fit_x_int)
         lane_center = (r_fit_x_int + l_fit_x_int) / 2
-        print(lane_center)
         center = (car_position - lane_center) * self.meters_per_pixel_x / 10
-        print(center)
         return (left_curve_radius, right_fit_radius, center)
 
     def draw_lanes(self, img):
@@ -202,6 +199,6 @@ lane_recognizer: LaneRecognizer = LaneRecognizer()
 lane_recognizer.sliding_window(wrapped)
 curverad = lane_recognizer.fit_curve_worldspace(img)
 print(curverad)
-img_ = lane_recognizer.draw_lanes(img)
-plt.imshow(img_, cmap='hsv')
-plt.show()
+# img_ = lane_recognizer.draw_lanes(img)
+# plt.imshow(img_, cmap='hsv')
+# plt.show()
