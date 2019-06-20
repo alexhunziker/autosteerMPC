@@ -1,7 +1,8 @@
-import cv2
-import numpy as np
 import time
 from statistics import mean
+
+import cv2
+import numpy as np
 
 
 def canny(image):
@@ -73,6 +74,9 @@ def display_lines(image, lines, rgb):
 # cv2.imshow('result', combo_image)
 # cv2.waitKey(0)
 
+global_start = time.time()
+intermediate = time.time()
+frames = 0
 times_retrieved_img = []
 times_preprocessed = []
 times_calculated_lanes = []
@@ -94,10 +98,14 @@ while cap.isOpened():
     line_image = display_lines(line_image, lines, (0, 225, 0))
     line_image = display_lines(line_image, average_lines, (225, 0, 0))
     combo_image = cv2.addWeighted(frame, 0.8, line_image, 1, 1)
-    cv2.imshow('result', combo_image)
+    # cv2.imshow('result', combo_image)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-    print(int((time.time() - start) * 1000), "ms")
+    print(int((time.time() - start) * 1000), "ms. Intermediate ", int((time.time() - intermediate) * 1000), "ms")
+    intermediate = time.time()
+    frames += 1
+
+print("It took: ", int((time.time() - global_start) * 1000), "ms. Frames: ", frames)
 
 print("Retrieved image after:", mean(times_retrieved_img), "ms")
 print("Preprocessed after:", mean(times_preprocessed), "ms")
