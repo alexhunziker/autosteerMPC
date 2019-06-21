@@ -18,7 +18,7 @@ A = [0, 0, -Vx, 0, -1, 1;   %  Very crude spaceholder calc for x pos
     0, 0, 0, 1, 0, 0;
     0, 0, 0, -(2*Cf*lf^2+2*Cr*lr^2)/Iz/Vx, -(2*Cf*lf-2*Cr*lr)/Iz/Vx, 0;
     0, 0, 0, -Vx-(2*Cf*lf-2*Cr*lr)/m/Vx, -(2*Cf+2*Cr)/m/Vx, 0;
-    0, 0, 0, 0, 0, 0.9        % Very crude definition of speed
+    0, 0, 0, 0, 0, -.1        % Very crude definition of speed
     ];
 
 B = [0, 0, 0, 2*Cf*lf/Iz, 2*Cf/m, 0;    % Steering angle
@@ -31,5 +31,8 @@ C = [1, 0, 0, 0, 0, 0;
 
 D = zeros(4, 2);
 
-ss_model = ss(A, B, C, D)
+ss_model = ss(A, B, C, D);
+
+ss_model_discrete = c2d(ss_model, 0.1);
+
 
