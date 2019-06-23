@@ -1,5 +1,6 @@
 % X = PositionX, PositionY, YawAngle, YawAngle_Dot, PosY_Dot, Velocity
 % Y = Steering Angle, Velocity
+x = [0, 0, 0, 0, 0, 0];  % just so it is defined
 
 % Vx (longitudional velocity) actually needs to be updated, model is non
 % linear, this needs to be done in an adaptive MPC
@@ -12,9 +13,13 @@ cf = 19000; % Cornering Stiffness front
 cr = 33000; % Cornering Stiffness rear
 iz = 2800;  % Yaw Moment of Innertia?
 
+factor_y = sin(x(3)+ x(5));
+factor_x = cos(x(3)+ x(5));
+
 % Continuous-time model
-A = [0, 0, -Vx, 0, -1, 1;   %  Very crude spaceholder calc for x pos
-    0, 0, Vx, 0, 1, 0;
+A = [%0, 0, -Vx, 0, -1, 1;   %  Very crude spaceholder calc for x pos
+    0, 0, 0, 0, 0, factor_x;
+    0, 0, 0, 0, 0, factor_y;
     0, 0, 0, 1, 0, 0;
     0, 0, 0, -(2*Cf*lf^2+2*Cr*lr^2)/Iz/Vx, -(2*Cf*lf-2*Cr*lr)/Iz/Vx, 0;
     0, 0, 0, -Vx-(2*Cf*lf-2*Cr*lr)/m/Vx, -(2*Cf+2*Cr)/m/Vx, 0;
