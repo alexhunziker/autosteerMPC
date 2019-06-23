@@ -20,7 +20,7 @@ beta = 0.96079;
 %% specify weights
 mpc1.Weights.MV = [0 0]*beta;
 mpc1.Weights.MVRate = [0.2 0.1]/beta;
-mpc1.Weights.OV = [1 1 20 0]*beta;
+mpc1.Weights.OV = [1 1 .2 0]*beta;
 mpc1.Weights.ECR = 100000;
 %% specify simulation options
 options = mpcsimopt();

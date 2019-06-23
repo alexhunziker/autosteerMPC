@@ -21,8 +21,8 @@ A = [%0, 0, -Vx, 0, -1, 1;   %  Very crude spaceholder calc for x pos
     0, 0, 0, 0, 0, factor_x;
     0, 0, 0, 0, 0, factor_y;
     0, 0, 0, 1, 0, 0;
-    0, 0, 0, -(2*Cf*lf^2+2*Cr*lr^2)/Iz/Vx, -(2*Cf*lf-2*Cr*lr)/Iz/Vx, 0;
-    0, 0, 0, -Vx-(2*Cf*lf-2*Cr*lr)/m/Vx, -(2*Cf+2*Cr)/m/Vx, 0;
+    0, 0, 0, -1/Vx*(cf*lf^2+cr*lr^2)/iz, -(cf*lf-cr*lr)/iz, 0;
+    0, 0, 0, -1-1/Vx^2*(cf*lf-cr*lr)/m, -1/Vx*(cf+cr)/m, 0;
     0, 0, 0, 0, 0, -.1        % Very crude definition of speed
     ];
 
