@@ -15,6 +15,8 @@ mpc1.MV(2).Max = 0.5;
 
 mpc1.OV(4).Min = 0;
 mpc1.OV(4).Max = 4;
+mpc1.OV(3).Min = -pi;
+mpc1.OV(3).Max = pi;
 %% specify overall adjustment factor applied to weights
 beta = 0.96079;
 %% specify weights
