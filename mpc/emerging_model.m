@@ -30,21 +30,23 @@ iz = 2800;  % Yaw Moment of Innertia
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Continuous-time model
-Ac = [0, Vx, 0, 1, 0;
-       0, 0, 1, 0, 0;
-       0, 0, -(2*cf*lf^2+2*cr*lr^2)/iz/Vx, -(2*cf*lf-2*cr*lr)/iz/Vx, 0;
-       0, 0,  -Vx-(2*cf*lf-2*cr*lr)/m/Vx, -(2*cf+2*cr)/m/Vx, 0;
-       0, 0, 0, 0, -.1];
+Ac = [0, 0, -Vx, 0, -1, Vx;
+       0, 0, Vx, 0, 1, 0;
+       0, 0, 0, 1, 0, 0;
+       0, 0, 0, -(2*cf*lf^2+2*cr*lr^2)/iz/Vx, -(2*cf*lf-2*cr*lr)/iz/Vx, 0;
+       0, 0, 0,  -Vx-(2*cf*lf-2*cr*lr)/m/Vx, -(2*cf+2*cr)/m/Vx, 0;
+       0, 0, 0, 0, 0, -.1];
    
- Bc = [0, 0, 2*cf*lf/iz, 2*cf/m, 0;
-        0, 0, 0, 0, 1]';
+ Bc = [0, 0, 0, 2*cf*lf/iz, 2*cf/m, 0;
+        0, 0, 0, 0, 0, 1]';
  
  % Position, Yaw, Speed
- Cc = [1, 0, 0, 0, 0;
-        0, 1, 0, 0, 0;
-        0, 0, 0, 0, 1];
+ Cc = [1, 0, 0, 0, 0, 0;
+        0, 1, 0, 0, 0, 0;
+        0, 0, 1, 0, 0, 0;
+        0, 0, 0, 0, 0, 1];
     
- Dc = zeros(3, 2);
+ Dc = zeros(4, 2);
 
 ss_model = ss(Ac, Bc, Cc, Dc);
 
@@ -66,23 +68,23 @@ bycicle_mpc.PredictionHorizon = 6;
 bycicle_mpc.ControlHorizon = 2;
 % specify nominal values for inputs and outputs
 bycicle_mpc.Model.Nominal.U = [0;0];
-bycicle_mpc.Model.Nominal.Y = [0;0;0];
+bycicle_mpc.Model.Nominal.Y = [0;0;0;0];
 % specify constraints for MV and MV Rate
 bycicle_mpc.MV(1).Min = -0.785398163397448;    % Steering Angle
 bycicle_mpc.MV(1).Max = 0.785398163397448;
 bycicle_mpc.MV(2).Min = -1;                    % Acceleration/Break input
 bycicle_mpc.MV(2).Max = 0.5;
 
-bycicle_mpc.OV(3).Min = 0;                     % Speed limits
-bycicle_mpc.OV(3).Max = 4;
-bycicle_mpc.OV(2).Min = -pi;                   % Yaw cannot exceed 2pi. necesssary?
-bycicle_mpc.OV(2).Max = pi;
+bycicle_mpc.OV(4).Min = 0;                     % Speed limits
+bycicle_mpc.OV(4).Max = 4;
+bycicle_mpc.OV(3).Min = -pi;                   % Yaw cannot exceed 2pi. necesssary?
+bycicle_mpc.OV(3).Max = pi;
 % specify overall adjustment factor applied to weights
 beta = 0.96079;
 % specify weights
 bycicle_mpc.Weights.MV = [0 0]*beta;
 bycicle_mpc.Weights.MVRate = [0.2 0.1]/beta;
-bycicle_mpc.Weights.OV = [2 0 0.1]*beta;
+bycicle_mpc.Weights.OV = [0 0 2 0.1]*beta;
 bycicle_mpc.Weights.ECR = 100000;              % Constraint Softening, default
 % specify simulation options
 options = mpcsimopt();
