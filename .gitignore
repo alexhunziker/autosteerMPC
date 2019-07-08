@@ -1,2 +1,5 @@
 venv/
 mpc/resources/
+
+slprj/
+*_grt_rtw/
