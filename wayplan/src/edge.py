@@ -13,6 +13,9 @@ class Edge(object):
         self.consumed = False
         self.way_to_here = None
 
+    def __repr__(self):
+        return "Edge: " + self.start
+
     def potentially_update(self, reached_in: float, way_to_here: []):
         if self.reachable_in > reached_in:
             self.reachable_in = reached_in
