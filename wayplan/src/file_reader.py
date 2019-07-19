@@ -11,13 +11,13 @@ class FileReader(object):
         open_file = open(self.file, 'r')
         line = open_file.readline()
         while line:
+            line = line.replace("\n", "")
             line_segments = line.split("\t")
             if line_segments[0] == "T":
                 self.process_position(line_segments[1], line_segments[2])
             if line_segments[0] == "type":
                 self.reset_current()
             line = open_file.readline()
-        print(self.graph)
         return self.graph
 
     def process_position(self, lat, lon):

@@ -14,7 +14,9 @@ class Edge(object):
         self.way_to_here = None
 
     def __repr__(self):
-        return "Edge: " + self.start
+        pos1 = str(self.way_points[0][0]) + str(self.way_points[0][1])
+        pos2 = str(self.way_points[-1][0]) + str(self.way_points[-1][1])
+        return "Edge: " + self.start + "(" + pos1 + "," + pos2 + ")"
 
     def potentially_update(self, reached_in: float, way_to_here: []):
         if self.reachable_in > reached_in:
@@ -31,7 +33,7 @@ class Edge(object):
     def consume(self, cut_off):
         self.consumed = True
         weight_after = self.reachable_in + self.weight
-        current_way = self.way_to_here + self.way_points
+        current_way = self.way_to_here + [self.way_points[1]]
         if weight_after > cut_off:
             return list()
 

@@ -1,6 +1,7 @@
 import math
 
 from data_loader import DataLoader
+from result_writer import ResultWriter
 
 
 class RoutePlanner(object):
@@ -30,6 +31,7 @@ class RoutePlanner(object):
 
         print(potential_solution.way_to_here)
         print("Reachable in:", potential_solution.reachable_in)
+        ResultWriter('../target_trajectory.txt').write(potential_solution.way_to_here)
 
     def find_best_open(self, open_edges):
         best_open_weight: float = math.inf
@@ -37,11 +39,6 @@ class RoutePlanner(object):
         for idx in range(len(open_edges)):
             if open_edges[idx].weight < best_open_weight and not open_edges[idx].consumed:
                 best_open = idx
-        print("best open", best_open)
-        if not best_open:
-            print("DEBUG:", open_edges)
-            for open_edge in open_edges:
-                print(open_edge.weight, open_edge.consumed)
         return best_open
 
     def add_starting_edges(self, start: str):
@@ -53,4 +50,4 @@ class RoutePlanner(object):
         return start_edges
 
 
-RoutePlanner().calculate("0x1d", "0x26")
+RoutePlanner().calculate("0x1d", "0x1b0")
