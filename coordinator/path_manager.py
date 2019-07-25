@@ -1,0 +1,2 @@
+class PathManager(object):
+    pass

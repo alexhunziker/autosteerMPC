@@ -1,0 +1,2 @@
+class MPCBridge(object):
+    pass

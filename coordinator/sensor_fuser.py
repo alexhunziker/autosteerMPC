@@ -1,0 +1,2 @@
+class SensorFuser(object):
+    pass
