@@ -24,6 +24,6 @@ class Coordinator(object):
     def main_loop(self):
         parameters = self.sensor_fuser.retrieve_updates()
         self.path_manager.potentially_update_next(parameters.gps)
-        self.health_checker(parameters)
+        self.health_checker.check(parameters)
         impulses = self.mpc_bridge.request_step(parameters)
         self.actuator_bridge.send(impulses)
