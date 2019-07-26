@@ -1,5 +1,11 @@
 import time
 
+from actuator_bridge.py import ActuatorBridge
+from health_checker.py import HealthChecker
+from mpc_bridge.py import MPCBridge
+from path_manager.py import PathManager
+from sensor_fuser.py import SensorFuser
+
 
 class Coordinator(object):
     STEP_TIME = 0.1
