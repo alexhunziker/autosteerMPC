@@ -3,4 +3,13 @@ mpc/resources/
 
 slprj/
 *_grt_rtw/
+*_ert_rtw/
 .idea/
+
+
+*.exe
+*.elf
+*.autosave
+*.original
+*.slxc
+*.mexw64

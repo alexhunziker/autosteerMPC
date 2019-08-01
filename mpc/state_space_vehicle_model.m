@@ -17,16 +17,17 @@ factor_y = sin(x(3)+ x(5));
 factor_x = cos(x(3)+ x(5));
 
 % Continuous-time model
-A = [%0, 0, -Vx, 0, -1, 1;   %  Very crude spaceholder calc for x pos
-    0, 0, 0, 0, 0, factor_x;
-    0, 0, 0, 0, 0, factor_y;
+A = [0, 0, -Vx, 0, -1, 1;   %  Very crude spaceholder calc for x pos
+    %0, 0, 0, 0, 0, factor_x;
+    %0, 0, 0, 0, 0, factor_y;
+    0, 0, Vx, 0, 1, 0;
     0, 0, 0, 1, 0, 0;
     0, 0, 0, -1/Vx*(cf*lf^2+cr*lr^2)/iz, -(cf*lf-cr*lr)/iz, 0;
     0, 0, 0, -1-1/Vx^2*(cf*lf-cr*lr)/m, -1/Vx*(cf+cr)/m, 0;
     0, 0, 0, 0, 0, -.1        % Very crude definition of speed
     ];
 
-B = [0, 0, 0, 2*Cf*lf/Iz, 2*Cf/m, 0;    % Steering angle
+B = [0, 0, 0, 2*cf*lf/iz, 2*cf/m, 0;    % Steering angle
     0, 0, 0, 0, 0, 1]';                 % acceleration/break
 
 C = [1, 0, 0, 0, 0, 0;
