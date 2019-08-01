@@ -3,7 +3,6 @@ import time
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-
 from image_preprocessor import ImagePreprocessor
 from image_warper import ImageWarper
 from lane_recognizer import LaneRecognizer

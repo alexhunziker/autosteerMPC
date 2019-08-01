@@ -2,7 +2,6 @@ import time
 from statistics import mean
 
 import cv2
-
 from second_order_lane_recognizer import SecondOrderLaneRecognizer
 
 times_retrieved_img = []

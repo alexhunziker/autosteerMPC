@@ -1,5 +1,6 @@
-import numpy as np
 import cv2
+import numpy as np
+
 
 class ImageWarper(object):
     """
@@ -11,10 +12,10 @@ class ImageWarper(object):
 
     @classmethod
     def warp(cls, img,
-                              destination_size=DEFAULT_DESTINATION_SIZE,
-                              source_roi_proportion=DEFAULT_SOURCE_ROI,
-                              destination_roi_proportion=DEFAULT_DESTINATION_ROI
-                              ):
+             destination_size=DEFAULT_DESTINATION_SIZE,
+             source_roi_proportion=DEFAULT_SOURCE_ROI,
+             destination_roi_proportion=DEFAULT_DESTINATION_ROI
+             ):
         """
         Warps an image according to the specified ROIs (if any)
         :param img: Binary image to be processed

@@ -49,7 +49,7 @@ def average_slope_intercept(image, lines):
 def make_coordinates(image, line_parameters):
     slope, intercept = line_parameters
     y1 = image.shape[0]
-    y2 = int(y1*(3/5))
+    y2 = int(y1 * (3 / 5))
     x1 = int((y1 - intercept) / slope)
     x2 = int((y2 - intercept) / slope)
     return np.array([x1, y1, x2, y2])
