@@ -1,6 +1,8 @@
 from wayplan import RoutePlanner
 
 class PathManager(object):
+    GPS_PRECISION = 2.5
+
     def __init__(self):
         self.route_planner = RoutePlanner()
 
@@ -11,4 +13,6 @@ class PathManager(object):
         return self.route[0]
 
     def potentially_update_next(self, position):
-        raise NotImplementedError
+        if (abs(position.lat - self.route[0][0]) < PathManager.GPS_PRECISION and
+                abs(position.lat - self.route[0][1]) < PathManager.GPS_PRECISION):
+            self.route.pop(0)

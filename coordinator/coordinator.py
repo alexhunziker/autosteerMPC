@@ -11,17 +11,22 @@ class Coordinator(object):
     STEP_TIME = 0.1
 
     def __init__(self):
+        self.health_checker = HealthChecker()
+        self.health_checker.double_flash()
+
         self.path_manager = PathManager()
         self.sensor_fuser = SensorFuser()
-        self.health_checker = HealthChecker()
         self.mpc_bridge = MPCBridge()
         self.actuator_bridge = ActuatorBridge()
+
         self.active = True
+        self.health_checker.ready()
 
     def stop_system(self):
         self.active = False
 
     def start_trip(self, start, destination):
+        self.health_checker.double_flash()
         self.path_manager.retrieve_path(start, destination)
         while self.active:
             self.main_loop()
@@ -33,3 +38,7 @@ class Coordinator(object):
         self.health_checker.check(parameters)
         impulses = self.mpc_bridge.request_step(parameters)
         self.actuator_bridge.send(impulses)
+
+
+if __name__ == "__main__":
+    Coordinator().start_trip("0xa", "0xab")

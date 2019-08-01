@@ -1,6 +1,7 @@
-import RPi.GPIO as GPIO
-import time
 import threading
+import time
+
+import RPi.GPIO as GPIO
 
 
 class UltrasonicSensor(object):
@@ -13,6 +14,7 @@ class UltrasonicSensor(object):
     def __init__(self):
         GPIO.setmode(GPIO.BCM)
         self.stop = False
+        self.last_valid = time.time()
         measure_thread = threading.Thread(target=self.measure_loop)
         measure_thread.start()
 
@@ -55,9 +57,12 @@ class UltrasonicSensor(object):
         if count >= UltrasonicSensor.TIMEOUT_2:
             print("M2 failed")
             return None
+        self.last_valid = time.time()
         t_2 = time.time()
         dt = int((t_1 - t_0) * 1000000)
         if dt > 530:
+            # TODO: Probably returning 530 is btter for this purpose
+            print("bigger than 530")
             return None
         return t_2 - t_1
 

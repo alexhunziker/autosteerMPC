@@ -1,2 +1,3 @@
 class ActuatorBridge(object):
-    pass
+    def send(self, impulses):
+        pass

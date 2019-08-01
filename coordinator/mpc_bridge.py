@@ -1,2 +1,3 @@
 class MPCBridge(object):
-    pass
+    def request_step(self, parameters):
+        return None

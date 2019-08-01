@@ -34,7 +34,7 @@ class GPSSensor(object):
         self.stop = True
 
     def retrieve_state(self):
-        return self.gps, self.last_valid
+        return self.gps
 
 
 if __name__ == "__main__":
