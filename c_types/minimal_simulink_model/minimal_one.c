@@ -20,6 +20,7 @@
  */
 
 #include "minimal_one.h"
+#include<stdio.h>
 
 /* Block signals and states (default storage) */
 DW rtDW;
@@ -49,6 +50,7 @@ void minimal_one_step(real_T arg_Input, real_T *arg_Output)
 /* Model initialize function */
 void minimal_one_initialize(void)
 {
+  printf("HELLO WORLD\n");
   /* (no initialization code required) */
 }
 
