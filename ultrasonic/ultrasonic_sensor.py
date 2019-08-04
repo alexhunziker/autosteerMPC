@@ -11,9 +11,10 @@ class UltrasonicSensor(object):
 
     usleep = lambda x: time.sleep(x / 1_000_000.0)
 
-    def __init__(self):
+    def __init__(self, verbose=False):
         GPIO.setmode(GPIO.BCM)
         self.stop = False
+        self.verbose = verbose
         self.last_valid = time.time()
         measure_thread = threading.Thread(target=self.measure_loop)
         measure_thread.start()
@@ -23,7 +24,8 @@ class UltrasonicSensor(object):
         while not self.stop:
             self.measured_distance = self.measure()
             UltrasonicSensor.usleep(100_000)
-            print("Distance is", self.measured_distance, "cm")
+            if self.verbose:
+                print("Distance is", self.measured_distance, "cm")
 
     def measure(self):
         self.trigger_signal()
@@ -32,11 +34,11 @@ class UltrasonicSensor(object):
 
     def trigger_signal(self):
         GPIO.setup(UltrasonicSensor.GPIO_PIN, GPIO.OUT)
-        GPIO.output(UltrasonicSensor.GPIO_PIN, GPIO.LOW)
-        UltrasonicSensor.usleep(2)
         GPIO.output(UltrasonicSensor.GPIO_PIN, GPIO.HIGH)
-        UltrasonicSensor.usleep(10)
+        UltrasonicSensor.usleep(2)
         GPIO.output(UltrasonicSensor.GPIO_PIN, GPIO.LOW)
+        UltrasonicSensor.usleep(10)
+        GPIO.output(UltrasonicSensor.GPIO_PIN, GPIO.HIGH)
 
     def receive_signal(self):
         t_0 = time.time()
@@ -78,8 +80,8 @@ class UltrasonicSensor(object):
 
 
 if __name__ == "__main__":
-    sensor = UltrasonicSensor()
-    time.sleep(2)
+    sensor = UltrasonicSensor(True)
+    time.sleep(100)
     sensor.stop_measuring()
 
 

@@ -15,7 +15,7 @@ class SensorFuser(object):
         parameters.ultrasonic = self.ultrasonic.retrieve_state()
         parameters.ultrasonic_timestamp = self.ultrasonic.last_valid
 
-        parameters.gps = self.gps.retrieve_state()[0]
+        parameters.gps = self.gps.retrieve_state()
         parameters.gps_timestamp = self.gps.last_valid
 
         return parameters

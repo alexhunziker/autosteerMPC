@@ -27,27 +27,28 @@ class HealthChecker(object):
         double_flash.start()
 
     def double_flash(self):
-        while True:
+        for _ in range(30):
             GPIO.output(HealthChecker.GPIO_RED, GPIO.HIGH)
             GPIO.output(HealthChecker.GPIO_GREEN, GPIO.HIGH)
             time.sleep(0.1)
             GPIO.output(HealthChecker.GPIO_RED, GPIO.LOW)
             GPIO.output(HealthChecker.GPIO_GREEN, GPIO.LOW)
             time.sleep(0.1)
+            break
 
     def check(self, parameters):
         fail = False
         now = time.time()
 
-        if (now - parameters.ultrasonic.last_valid) > HealthChecker.MAX_SLACK_ULTRASONIC:
-            print("WARNING: Ultrasonic data out of date, last update", parameters.ultrasonic.last_valid)
+        if (now - parameters.ultrasonic_timestamp) > HealthChecker.MAX_SLACK_ULTRASONIC:
+            print("WARNING: Ultrasonic data out of date, last update", parameters.ultrasonic_timestamp)
             fail = True
 
-        if (now - parameters.gps.last_valid) > HealthChecker.MAX_SLACK_GPS:
-            print("WARNING: GPS data out of date, last update", parameters.gps.last_valid)
+        if (now - parameters.gps_timestamp) > HealthChecker.MAX_SLACK_GPS:
+            print("WARNING: GPS data out of date, last update", parameters.gps_timestamp)
             fail = True
 
-        flash = threading.Thread(target=self.flash, parameters=fail)
+        flash = threading.Thread(target=self.flash, args=[fail])
         flash.start()
 
     def flash(self, fail):

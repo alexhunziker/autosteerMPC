@@ -5,8 +5,9 @@ import gps
 
 
 class GPSSensor(object):
-    def __init__(self):
+    def __init__(self, verbose=False):
         self.stop = False
+        self.verbose = verbose
         self.last_valid = time.time()
         self.gps = {"lat": 0, "lon": 0, "altitude": 0, "speed": 0}
 
@@ -26,7 +27,8 @@ class GPSSensor(object):
             }
             if self.gps["lat"] > 0:
                 self.last_valid = time.time()
-            print(self.gps)
+            if self.verbose:
+                print(self.gps)
             time.sleep(0.1)
             gpsd.next()
 

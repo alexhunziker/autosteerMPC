@@ -32,6 +32,7 @@ class RoutePlanner(object):
         print(potential_solution.way_to_here)
         print("Reachable in:", potential_solution.reachable_in)
         ResultWriter('../target_trajectory.txt').write(potential_solution.way_to_here)
+        return potential_solution.way_to_here
 
     def find_best_open(self, open_edges):
         best_open_weight: float = math.inf

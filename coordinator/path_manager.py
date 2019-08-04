@@ -18,6 +18,7 @@ class PathManager:
         return self.route[0]
 
     def potentially_update_next(self, position):
-        if (abs(position.lat - self.route[0][0]) < PathManager.GPS_PRECISION and
-                abs(position.lat - self.route[0][1]) < PathManager.GPS_PRECISION):
+        if (abs(position["lat"] - float(self.route[0][0])) < PathManager.GPS_PRECISION and
+                abs(position["lon"] - float(self.route[0][1])) < PathManager.GPS_PRECISION):
+            print("INFO: Next way point loaded.")
             self.route.pop(0)
