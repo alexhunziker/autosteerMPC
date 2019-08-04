@@ -1,4 +1,4 @@
-from parameters.py import Parameters
+from parameters import Parameters
 
 from gps_sensor import gps_sensor
 from ultrasonic import ultrasonic_sensor

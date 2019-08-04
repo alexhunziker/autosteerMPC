@@ -1,6 +1,6 @@
-from edge import Edge
-from length_calculator import LengthCalculator
-from name_generator import NameGenerator
+from .edge import Edge
+from .length_calculator import LengthCalculator
+from .name_generator import NameGenerator
 
 
 class EdgeGenerator(object):

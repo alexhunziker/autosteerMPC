@@ -1,5 +1,5 @@
-from edge import Edge
-from file_reader import FileReader
+from .edge import Edge
+from .file_reader import FileReader
 
 class DataLoader(object):
 

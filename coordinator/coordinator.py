@@ -1,10 +1,10 @@
 import time
 
-from actuator_bridge.py import ActuatorBridge
-from health_checker.py import HealthChecker
-from mpc_bridge.py import MPCBridge
-from path_manager.py import PathManager
-from sensor_fuser.py import SensorFuser
+from actuator_bridge import ActuatorBridge
+from health_checker import HealthChecker
+from mpc_bridge import MPCBridge
+from path_manager import PathManager
+from sensor_fuser import SensorFuser
 
 
 class Coordinator(object):

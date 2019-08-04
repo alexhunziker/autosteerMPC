@@ -1,4 +1,4 @@
-from edge_generator import EdgeGenerator
+from .edge_generator import EdgeGenerator
 
 
 class FileReader(object):

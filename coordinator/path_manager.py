@@ -1,6 +1,11 @@
-from wayplan import RoutePlanner
+import sys
 
-class PathManager(object):
+sys.path.append('../')
+
+from wayplan.route_planner import RoutePlanner
+
+
+class PathManager:
     GPS_PRECISION = 2.5
 
     def __init__(self):
