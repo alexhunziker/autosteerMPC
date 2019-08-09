@@ -7,7 +7,7 @@ import RPi.GPIO as GPIO
 class UltrasonicSensor(object):
     GPIO_PIN = 2
     TIMEOUT_1 = 1000
-    TIMEOUT_2 = 10000
+    TIMEOUT_2 = 20000
 
     usleep = lambda x: time.sleep(x / 1_000_000.0)
 
@@ -43,19 +43,18 @@ class UltrasonicSensor(object):
     def receive_signal(self):
         t_0 = time.time()
         GPIO.setup(UltrasonicSensor.GPIO_PIN, GPIO.IN)
-        count = 0
-        while count < UltrasonicSensor.TIMEOUT_1:
+        # Refactored from while to for, check if it still works
+        for count in range(UltrasonicSensor.TIMEOUT_1):
             if GPIO.input(UltrasonicSensor.GPIO_PIN):
                 break
-            count += 1
         if count >= UltrasonicSensor.TIMEOUT_1:
             print("M1 failed")
             return None
         t_1 = time.time()
-        while count < UltrasonicSensor.TIMEOUT_2:
+        # Check if this works
+        for count in range(UltrasonicSensor.TIMEOUT_2):
             if not GPIO.input(UltrasonicSensor.GPIO_PIN):
                 break
-            count += 1
         if count >= UltrasonicSensor.TIMEOUT_2:
             print("M2 failed")
             return None
@@ -63,9 +62,9 @@ class UltrasonicSensor(object):
         t_2 = time.time()
         dt = int((t_1 - t_0) * 1000000)
         if dt > 530:
-            # TODO: Probably returning 530 is btter for this purpose
-            print("bigger than 530")
-            return None
+            if self.verbose:
+                print("DEBUG: Distance out of bounds, assuming max value")
+            return 530
         return t_2 - t_1
 
     def calculate_distance_cm(self, measurement):
