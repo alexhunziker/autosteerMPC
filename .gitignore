@@ -1,5 +1,6 @@
 venv/
 mpc/resources/
+*/__pycache__/*
 
 slprj/
 *_grt_rtw/
