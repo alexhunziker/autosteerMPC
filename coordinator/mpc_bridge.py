@@ -1,4 +1,4 @@
-from .impulses import Impulses
+from impulses import Impulses
 
 class MPCBridge(object):
     def __init__(self, silent=False):
