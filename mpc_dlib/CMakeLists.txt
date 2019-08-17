@@ -44,7 +44,7 @@ set (test mpc_test.cpp)
 
 # add all the cpp files we want to compile to this list.  This tells
 # cmake that they are part of our target (which is the executable named dtest)
-ADD_EXECUTABLE(${target_name} main.cpp tester.cpp ${tests})
+ADD_EXECUTABLE(${target_name} standalone_test.cpp tester.cpp ${tests})
 
 
 TARGET_LINK_LIBRARIES(${target_name} dlib::dlib )
