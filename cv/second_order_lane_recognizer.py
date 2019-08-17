@@ -3,33 +3,36 @@ import time
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from curve_calculator import CurveCalculator
 from image_preprocessor import ImagePreprocessor
 from image_warper import ImageWarper
-from lane_recognizer import LaneRecognizer
 
 
 class SecondOrderLaneRecognizer(object):
+    DEFAULT_DESTINATION_SIZE = (1280, 720)
 
-    def __init__(self):
+    def __init__(self, destination_size=DEFAULT_DESTINATION_SIZE):
+        self.destination_size = destination_size
         self.image_preprocessor: ImagePreprocessor = ImagePreprocessor()
         self.image_warper: ImageWarper = ImageWarper()
-        self.lane_recognizer: LaneRecognizer = LaneRecognizer()
+        self.curve_calculator: CurveCalculator = CurveCalculator()
         self.img = None
 
     def process(self, img):
         start_time = time.time()
         edges_image = self.image_preprocessor.process(img)
-        warped_image = self.image_warper.warp(edges_image)
-        self.lane_recognizer.sliding_window(warped_image)
+        warped_image = self.image_warper.warp(edges_image, destination_size=self.destination_size)
+        print("warped")
+        self.curve_calculator.sliding_window(warped_image)
         self.img = img
         print("Image processed in ", time.time() - start_time, "s")
         return self
 
     def get_curve_radius(self):
-        return self.lane_recognizer.fit_curve_worldspace(self.img)
+        return self.curve_calculator.fit_curve_worldspace(self.img)
 
     def visualize_lane(self):
-        lanes = self.lane_recognizer.draw_lanes(self.img)
+        lanes = self.curve_calculator.draw_lanes(self.img)
         curverad = self.get_curve_radius()
         lane_curve = np.mean([curverad[0], curverad[1]])
 
