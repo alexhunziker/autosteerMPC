@@ -4,7 +4,8 @@ import time
 import cv2
 from picamera import PiCamera
 from picamera.array import PiRGBArray
-from second_order_lane_recognizer import SecondOrderLaneRecognizer
+
+from .second_order_lane_recognizer import SecondOrderLaneRecognizer
 
 
 class LaneRecognizer(object):

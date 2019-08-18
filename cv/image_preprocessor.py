@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 
-from image_warper import *
-
 
 class ImagePreprocessor(object):
     """
