@@ -1,10 +1,16 @@
+import ctypes
+
 from impulses import Impulses
 
+
 class MPCBridge(object):
+    MPC_SHARED_OBJECT_LOCATION = "../mpc_dlib/build/libmpc_controller.so"
+
     def __init__(self, silent=False):
         self.silent = silent
-        return None
-        # Initialize all MPC Models here
+
+        self.mpc_controller = ctypes.CDLL(MPCBridge.MPC_SHARED_OBJECT_LOCATION)
+        self.mpc_controller.initialize_mpc_objects()
 
     def request_step(self, parameters):
         # here goes the regular mpc stuff
@@ -22,3 +28,7 @@ class MPCBridge(object):
         if (not self.silent):
             print("TNFO: EMERGENCY BREAK APPLIED")
         return impulses
+
+
+if __name__ == "__main__":
+    MPCBridge()
