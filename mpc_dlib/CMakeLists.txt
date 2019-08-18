@@ -1,57 +1,31 @@
-#cmake_minimum_required(VERSION 2.8.12)
-# Define Project Name
-#project(mpc)
+## This file generates the MPC Controller Binaries
+## To compile, cmake is required. (see: cmake.org)
 
-# Declare where to find dlib
-#add_subdirectory(../dlib dlib_build)
-
-# Add executable by specifying output executable and respective .cpp files
-# If there are multiply .cpp files they can be listed in the add_executable() statement
-#add_executable(mpc_test mpc_test.cpp)
-# Declare that program depends on dlib
-#target_link_libraries(mpc_test dlib::dlib)
-
-
-# To compile this program cmake is required.
-# Compiling from this folder:
+# Compiling from this folder using these commands:
 #   mkdir build
 #   cd build
 #   cmake ..
 #   cmake --build . --config Release
-
-
-#
-# This is a CMake makefile.  You can find the cmake utility and
-# information about it at http://www.cmake.org
-#
+# ... or run the shell script
 
 cmake_minimum_required(VERSION 2.8.12)
 
-# create a variable called target_name and set it to the string "dtest"
-set (target_name dtest)
+# set variable target name
+set (target_name mpc_test)
+
 PROJECT(${target_name})
+# set(CMAKE_BUILD_TYPE Release)
 
-# CUSTOM CHANGE DUE TO UNDEFINED REFERENCE __ATOMIC_LOAD_8
+# Define missing references on Raspberry Pi (__ATOMIC_LOAD_8 etc)
 set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -latomic")
-
 
 add_subdirectory(../dlib dlib_build)
 
-# This variable contains a list of all the tests we are building
-# into the regression test suite.
-set (test mpc_test.cpp)
-
-
-# add all the cpp files we want to compile to this list.  This tells
-# cmake that they are part of our target (which is the executable named dtest)
-ADD_EXECUTABLE(${target_name} standalone_test.cpp tester.cpp ${tests})
-
-
+# Executable for testing: add all files to the targets, and tell cmake to use dlib
+ADD_EXECUTABLE(${target_name} standalone_test.cpp tester.cpp)
 TARGET_LINK_LIBRARIES(${target_name} dlib::dlib )
 
+# Shared Object for actual implementation: add all files to the targets, and tell cmake to use dlib
+add_library(mpc_controller SHARED mpc_controller.cpp)
+TARGET_LINK_LIBRARIES(mpc_controller dlib::dlib )
 
-if (NOT DLIB_NO_GUI_SUPPORT)
-   add_subdirectory(gui)
-   add_subdirectory(examples)
-   add_subdirectory(tools)
-endif()
