@@ -4,21 +4,20 @@ import time
 import cv2
 from picamera import PiCamera
 from picamera.array import PiRGBArray
-
-from .second_order_lane_recognizer import SecondOrderLaneRecognizer
+from second_order_lane_recognizer import SecondOrderLaneRecognizer
 
 
 class LaneRecognizer(object):
     def __init__(self, debug=False):
         self.debug = debug
         self.camera = PiCamera()
-        self.camera.resolution = (720, 1280)
+        self.camera.resolution = (1280, 720)
         self.camera.rotation = 180
         self.raw_capture = PiRGBArray(self.camera)
         self.target_yaw_rate = None
         self.last_valid = None
         self.stop = False
-        self.second_order_recognizer = SecondOrderLaneRecognizer(destination_size=(720, 1280))
+        self.second_order_recognizer = SecondOrderLaneRecognizer(destination_size=(1280, 720), debug=True)
         measure_thread = threading.Thread(target=self.measure_loop)
         measure_thread.start()
 

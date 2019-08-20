@@ -29,7 +29,5 @@ class ImageWarper(object):
         source_roi = source_roi_proportion * source_size
         destination_roi = destination_roi_proportion * np.float32(destination_size)
         transformation_matrix = cv2.getPerspectiveTransform(source_roi, destination_roi)
-        if img.shape != destination_size:
-            print("INFO: Warping Dimension Mismatch: ", img.shape, destination_size)
 
         return cv2.warpPerspective(img, transformation_matrix, destination_size)

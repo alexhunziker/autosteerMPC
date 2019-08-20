@@ -3,21 +3,21 @@ import time
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-
-from .curve_calculator import CurveCalculator
-from .image_preprocessor import ImagePreprocessor
-from .image_warper import ImageWarper
+from curve_calculator import CurveCalculator
+from image_preprocessor import ImagePreprocessor
+from image_warper import ImageWarper
 
 
 class SecondOrderLaneRecognizer(object):
     DEFAULT_DESTINATION_SIZE = (1280, 720)
 
-    def __init__(self, destination_size=DEFAULT_DESTINATION_SIZE):
+    def __init__(self, destination_size=DEFAULT_DESTINATION_SIZE, debug=False):
         self.destination_size = destination_size
         self.image_preprocessor: ImagePreprocessor = ImagePreprocessor()
         self.image_warper: ImageWarper = ImageWarper()
-        self.curve_calculator: CurveCalculator = CurveCalculator()
+        self.curve_calculator: CurveCalculator = CurveCalculator(debug=debug)
         self.img = None
+        self.debug = debug
 
     def process(self, img):
         start_time = time.time()

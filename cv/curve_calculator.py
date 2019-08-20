@@ -12,8 +12,10 @@ class CurveCalculator(object):
 
     def __init__(self,
                  meters_per_pixel_x=DEFAULT_METERS_PER_PIXEL_X,
-                 meters_per_pixel_y=DEFAULT_METERS_PER_PIXEL_Y
+                 meters_per_pixel_y=DEFAULT_METERS_PER_PIXEL_Y,
+                 debug=False
                  ):
+        CurveCalculator.DEBUG = debug
         self.left = [[], [], []]
         self.right = [[], [], []]
 
@@ -162,18 +164,12 @@ class CurveCalculator(object):
         ploty = np.linspace(0, img.shape[0] - 1, img.shape[0])
         color_img = np.zeros_like(img)
 
-        print(self.left_fitted_curve.shape)
-        print(ploty.shape)
-        print(np.vstack([self.left_fitted_curve, ploty]))
-        print(np.transpose(np.vstack([self.left_fitted_curve, ploty])))
         left = np.array([np.transpose(np.vstack([self.left_fitted_curve, ploty]))])
         right = np.array([np.flipud(np.transpose(np.vstack([self.right_fitted_curve, ploty])))])
         points = np.hstack((left, right))
 
         cv2.fillPoly(color_img, np.int_(points), (0, 200, 255))
-        inv_perspective = self.inv_perspective_warp(color_img)
-        print(inv_perspective.shape)
-        print(img.shape)
+        inv_perspective = self.inv_perspective_warp(color_img, dst_size=(img.shape[1], img.shape[0]))
         inv_perspective = cv2.addWeighted(img, 1, inv_perspective, 0.7, 0)
         return inv_perspective
 
@@ -183,7 +179,7 @@ class CurveCalculator(object):
                              # dst_size=(608, 800),
                              src=np.float32([(0, 0), (1, 0), (0, 1), (1, 1)]),
                              dst=np.float32([(0.43, 0.65), (0.58, 0.65), (0.1, 1), (1, 1)])):
-        img_size = np.float32([(img.shape[1], img.shape[0])])
+        img_size = np.float32([(img.shape[0], img.shape[1])])
         src = src * img_size
         # For destination points, I'm arbitrarily choosing some points to be
         # a nice fit for displaying our warped result
