@@ -20,7 +20,7 @@ class SensorFuser(object):
         parameters.gps = self.gps.retrieve_state()
         parameters.gps_timestamp = self.gps.last_valid
 
-        parameters.yaw_rate = self.lane_recognizer.retrieve_state()
-        parameters.yaw_rate_timestamp = self.lane_recognizer.last_valid
+        parameters.lane_curvature, parameters.lateral_offset = self.lane_recognizer.retrieve_state()
+        parameters.cv_timestamp = self.lane_recognizer.last_valid
 
         return parameters

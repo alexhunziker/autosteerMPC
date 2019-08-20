@@ -6,8 +6,9 @@ class Parameters(object):
         self.gps = {"lat": None, "lon": None, "altitude": None, "speed": None}
         self.gps_timestamp = None
 
-        self.yaw_rate = None
-        self.yaw_rate_timestamp = None
+        self.lane_curvature = None
+        self.lateral_offset = None
+        self.cv_timestamp = None
 
         self.lidar = None
         self.lidar_timestamp = None

@@ -3,9 +3,10 @@ import time
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from curve_calculator import CurveCalculator
-from image_preprocessor import ImagePreprocessor
-from image_warper import ImageWarper
+
+from .curve_calculator import CurveCalculator
+from .image_preprocessor import ImagePreprocessor
+from .image_warper import ImageWarper
 
 
 class SecondOrderLaneRecognizer(object):
@@ -23,11 +24,14 @@ class SecondOrderLaneRecognizer(object):
         start_time = time.time()
         edges_image = self.image_preprocessor.process(img)
         warped_image = self.image_warper.warp(edges_image, destination_size=self.destination_size)
-        print("warped")
         self.curve_calculator.sliding_window(warped_image)
         self.img = img
-        print("Image processed in ", time.time() - start_time, "s")
-        return self
+        curverad = self.get_curve_radius()
+        lane_curvature = np.mean([curverad[0], curverad[1]])
+        print("INFO: Curvature (m):", lane_curvature, "vehicle offset (m):", curverad[2])
+        print("curverad", curverad)
+        print("INFO: Image processed in ", time.time() - start_time, "s")
+        return lane_curvature, curverad[2]
 
     def get_curve_radius(self):
         return self.curve_calculator.fit_curve_worldspace(self.img)

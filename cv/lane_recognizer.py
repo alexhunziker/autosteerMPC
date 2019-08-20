@@ -4,20 +4,25 @@ import time
 import cv2
 from picamera import PiCamera
 from picamera.array import PiRGBArray
-from second_order_lane_recognizer import SecondOrderLaneRecognizer
+
+from .second_order_lane_recognizer import SecondOrderLaneRecognizer
 
 
 class LaneRecognizer(object):
+    RESOLUTION = (1280, 720)
+
     def __init__(self, debug=False):
         self.debug = debug
         self.camera = PiCamera()
-        self.camera.resolution = (1280, 720)
+        self.camera.resolution = LaneRecognizer.RESOLUTION
         self.camera.rotation = 180
         self.raw_capture = PiRGBArray(self.camera)
-        self.target_yaw_rate = None
+        self.curve_radius = None
+        self.lateral_deviation = None
         self.last_valid = None
         self.stop = False
-        self.second_order_recognizer = SecondOrderLaneRecognizer(destination_size=(1280, 720), debug=True)
+        self.second_order_recognizer = SecondOrderLaneRecognizer(destination_size=LaneRecognizer.RESOLUTION,
+                                                                 debug=self.debug)
         measure_thread = threading.Thread(target=self.measure_loop)
         measure_thread.start()
 
@@ -30,6 +35,7 @@ class LaneRecognizer(object):
         self.stop = True
 
     def analyze_frame(self):
+        # TODO: Move to camera module, for architecture but also for performance.
         try:
             self.raw_capture = PiRGBArray(self.camera)
             self.camera.capture(self.raw_capture, format="bgr")
@@ -40,7 +46,7 @@ class LaneRecognizer(object):
 
         try:
             image = self.raw_capture.array
-            self.second_order_recognizer.process(image)
+            self.curve_radius, self.lateral_deviation = self.second_order_recognizer.process(image)
         except:
             print("WARN: Image processing failed...")
             time.sleep(0.1)
@@ -51,11 +57,12 @@ class LaneRecognizer(object):
             cv2.imshow('result', result)
             cv2.waitKey(0)
 
+        self.last_valid = time.time()
         return 1
 
     def retrieve_state(self):
-        return self.target_yaw_rate
+        return self.curve_radius, self.lateral_deviation
 
 
 if __name__ == "__main__":
-    LaneRecognizer()
+    LaneRecognizer(debug=True)
