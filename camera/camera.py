@@ -6,9 +6,9 @@ from picamera.array import PiRGBArray
 
 
 class Camera(object):
-    def __init__(self, resolution=(1280, 720), debug=False):
+    def __init__(self, resolution=(1280, 720), debug=True):
         self.camera = PiCamera()
-        self.raw_capture = PiRGBArray(self.camera)
+        self.raw_capture_array = None
         self.camera.resolution = resolution
         self.camera.rotation = 180
 
@@ -24,8 +24,9 @@ class Camera(object):
     def measure_loop(self):
         while not self.stop:
             try:
-                self.raw_capture = PiRGBArray(self.camera)
-                self.camera.capture(self.raw_capture, format="bgr")
+                raw_capture = PiRGBArray(self.camera)
+                self.camera.capture(raw_capture, format="bgr")
+                self.raw_capture_array = raw_capture.array
             except:
                 print("WARN: Image capturing failed...")
                 time.sleep(0.1)
@@ -37,7 +38,7 @@ class Camera(object):
         self.stop = True
 
     def retrieve_data(self):
-        return self.raw_capture.array
+        return self.raw_capture_array
 
 
 if __name__ == "__main__":
