@@ -1,5 +1,6 @@
 from parameters import Parameters
 
+from camera import camera
 from cv import lane_recognizer
 from gps_sensor import gps_sensor
 from ultrasonic import ultrasonic_sensor
@@ -9,7 +10,8 @@ class SensorFuser(object):
     def __init__(self):
         self.ultrasonic = ultrasonic_sensor.UltrasonicSensor()
         self.gps = gps_sensor.GPSSensor()
-        self.lane_recognizer = lane_recognizer.LaneRecognizer()
+        self.camera = camera.Camera()
+        self.lane_recognizer = lane_recognizer.LaneRecognizer(self.camera)
 
     def retrieve_updates(self):
         parameters = Parameters()

@@ -2,8 +2,6 @@ import threading
 import time
 
 import cv2
-from picamera import PiCamera
-from picamera.array import PiRGBArray
 
 from .second_order_lane_recognizer import SecondOrderLaneRecognizer
 
@@ -11,12 +9,9 @@ from .second_order_lane_recognizer import SecondOrderLaneRecognizer
 class LaneRecognizer(object):
     RESOLUTION = (1280, 720)
 
-    def __init__(self, debug=False):
+    def __init__(self, camera, debug=False):
         self.debug = debug
-        self.camera = PiCamera()
-        self.camera.resolution = LaneRecognizer.RESOLUTION
-        self.camera.rotation = 180
-        self.raw_capture = PiRGBArray(self.camera)
+        self.camera_object = camera
         self.curve_radius = None
         self.lateral_deviation = None
         self.last_valid = None
@@ -35,17 +30,8 @@ class LaneRecognizer(object):
         self.stop = True
 
     def analyze_frame(self):
-        # TODO: Move to camera module, for architecture but also for performance.
         try:
-            self.raw_capture = PiRGBArray(self.camera)
-            self.camera.capture(self.raw_capture, format="bgr")
-        except:
-            print("WARN: Image capturing failed...")
-            time.sleep(0.1)
-            return None
-
-        try:
-            image = self.raw_capture.array
+            image = self.camera_object.retrieve_data()
             self.curve_radius, self.lateral_deviation = self.second_order_recognizer.process(image)
         except:
             print("WARN: Image processing failed...")
