@@ -1,5 +1,6 @@
 import threading
 import time
+import traceback
 
 import cv2
 
@@ -32,9 +33,13 @@ class LaneRecognizer(object):
     def analyze_frame(self):
         try:
             image = self.camera_object.retrieve_data()
+            if image is None:
+                print("WARN: Image data cannot be retrieved from camera module")
+                return None
             self.curve_radius, self.lateral_deviation = self.second_order_recognizer.process(image)
         except:
             print("WARN: Image processing failed...")
+            traceback.print_exc()
             time.sleep(0.1)
             return None
 
