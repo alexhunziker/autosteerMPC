@@ -6,6 +6,8 @@ class Parameters(object):
         self.gps = {"lat": None, "lon": None, "altitude": None, "speed": None}
         self.gps_timestamp = None
 
+        self.next_target = None
+
         self.lane_curvature = None
         self.lateral_offset = None
         self.cv_timestamp = None

@@ -16,7 +16,8 @@ class MPCBridge(object):
 
     def request_step(self, parameters):
         mpc_controls_receiver = (ctypes.c_double * 3)()
-        self.mpc_controller.predict(ctypes.c_double(10), ctypes.c_double(10),
+        self.mpc_controller.predict(ctypes.c_double(parameters.next_target[0]),
+                                    ctypes.c_double(parameters.next_target[1]),
                                     ctypes.c_double(self.last_controls.steering),
                                     ctypes.c_double(self.last_controls.throttle),
                                     ctypes.c_double(self.last_controls.breaks),
