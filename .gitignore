@@ -1,6 +1,9 @@
 venv/
 mpc/resources/
 
+dlib/
+ydlidar_sdk/
+
 slprj/
 *_grt_rtw/
 *_ert_rtw/
