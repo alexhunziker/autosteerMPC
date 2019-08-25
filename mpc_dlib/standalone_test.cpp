@@ -20,12 +20,12 @@ int main (int argc, char** argv)
     double controls[NR_OF_CONTROLS];
     double observables[NR_OF_STATES] = {0, 0, 0, 0, 0, 2};
 
-    for(int i=1; i<100; i++) {
+    for(int i=1; i<20; i++) {
         double bu[NR_OF_STATES];
         for(int i=0; i<NR_OF_STATES; i++){
             bu[i] = observables[i];
         }
-        predict(10, 10, controls[0], controls[1], controls[5], observables[0], observables[1], observables[2],
+        predict(10, 10, controls[0], controls[1], controls[5], observables[0], observables[1], observables[5],
                     controls, bu);
 
         simulate_wrapper(observables, controls, observables[5], observables[3]);

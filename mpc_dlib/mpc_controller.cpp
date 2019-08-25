@@ -57,16 +57,15 @@ mpc<NR_OF_STATES, NR_OF_CONTROLS, PREDICTION_HORIZON> initialize_for_speed(float
         0, 0, 0, 0, 0, 1-0.1*STEP_SIZE; // speed TODO: Something more elaborate here
 
 
-
     // Matrix B: How the change in states depends on the controls
     matrix<double, NR_OF_STATES, NR_OF_CONTROLS> B;
     // Steering Angle, Throttle, Breaks
     B = 0, 0, 0,
         0, 0, 0,
         0, 0, 0,
-        2*cf*lf/iz, 0, 0,
-        2*cf/m, 0, 0,
-        0, 1, -2;   // TODO: Something more elaborate here.
+        2*cf*lf/iz*STEP_SIZE, 0, 0,
+        2*cf/m*STEP_SIZE, 0, 0,
+        0, 1*STEP_SIZE, -2*STEP_SIZE;   // TODO: Something more elaborate here.
 
 
     // Matrix C: Unconditional changes in state / disturbance
@@ -98,7 +97,7 @@ matrix<double, NR_OF_STATES, 1> calculate_target_state(
                                         double y_target,
                                         double x_current, double y_current){
 
-    double yaw_target = atan(abs(y_current) - abs(y_target)) / (abs(x_current) - abs(x_target));
+    double yaw_target = atan(abs(y_current - y_target) / abs(x_current - x_target));
     if((x_current - x_target > 0) && ((y_current - y_target < 0))) {           // 2nd Q
         yaw_target = PI - yaw_target;
     } else if((x_current - x_target > 0) && ((y_current - y_target > 0))) {    // 3rd Q
@@ -128,8 +127,8 @@ double calculate_yaw_rate(){
 }
 
 mpc<NR_OF_STATES, NR_OF_CONTROLS, PREDICTION_HORIZON> get_best_mpc_object(double speed) {
-    int idx = max((int)(speed * 5)-1, 19);
-    cout << "DEBUG: Using Blind MPC with idx " << idx << "\n";
+    //int idx = min((int)(speed * 5), 19);          // TODO: WHY THE FUCK DOES ONLY WORK FOR SPEEDS ~ >2???
+    int idx = 19;
     return mpc_objects[idx];
 }
 
