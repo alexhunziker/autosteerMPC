@@ -74,7 +74,7 @@ matrix<double, NR_OF_STATES, 1> simulate_next_step(
             0, 1, 0, 0, 0, sin(yaw_angle)*STEP_SIZE*STEP_SIZE,
             0, 0, 1, 1*STEP_SIZE*STEP_SIZE, 0, 0,
             0, 0, 0, 1-(2*cf*lf*lf+2*cr*lr*lr)/iz/speed*STEP_SIZE*STEP_SIZE, -(2*cf*lf-2*cr*lr)/iz/speed*STEP_SIZE*STEP_SIZE, 0,
-            0, 0, 0,  -speed-(2*cf*lf-2*cr*lr)/m/speed*STEP_SIZE*STEP_SIZE, 1-(2*cf+2*cr)/m/speed*STEP_SIZE*STEP_SIZE, 0,
+            0, 0, 0, -speed-(2*cf*lf-2*cr*lr)/m/speed*STEP_SIZE*STEP_SIZE, 1-(2*cf+2*cr)/m/speed*STEP_SIZE*STEP_SIZE, 0,
             0, 0, 0, 0, 0, 1-0.1*STEP_SIZE*STEP_SIZE;
 
         matrix<double, NR_OF_STATES, NR_OF_CONTROLS> B;
