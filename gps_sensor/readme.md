@@ -25,7 +25,8 @@ to `/boot/cmdline.txt`
     ```
 3. Set 9600 Rate `stty -F /dev/ttyAMA0 9600`
 4. Add AMA0 to Devices (`/etc/default/gpsd`) by adding `DEVICES="/dev/ttyAMA0"`
-5. Restart Software
+5. In order to use USB Serial Devices, make sure to set `USBAUTO="false"` (`/etc/default/gpsd`)
+6. Restart Software
     ```
     sudo systemctl enable gpsd.socket
     sudo systemctl start gpsd.socket 
