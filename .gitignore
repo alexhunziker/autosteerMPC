@@ -1,5 +1,8 @@
 venv/
 mpc/resources/
+__pycache__/
+*/__pycache__/
+*/build/
 
 dlib/
 ydlidar_sdk/
