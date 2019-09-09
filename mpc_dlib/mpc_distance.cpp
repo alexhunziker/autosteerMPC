@@ -62,7 +62,7 @@ extern "C"
             0, 0, 0, 1 - (2 * cf * lf * lf + 2 * cr * lr * lr) / iz / v * STEP_SIZE, -(2 * cf * lf - 2 * cr * lr) / iz / v * STEP_SIZE, 0, 0, // yaw_rate
             0, 0, 0, -v - (2 * cf * lf - 2 * cr * lr) / m / v * STEP_SIZE, 1 - (2 * cf + 2 * cr) / m / v * STEP_SIZE, 0, 0,                   // schwimm_angle
             0, 0, 0, 0, 0, 1 - 0.1 * STEP_SIZE, 0,                                                                                            // speed TODO: Something more elaborate here
-            0, 0, 0, 0, 0, -STEP_SIZE, 1;                                                                                                     // Distance to Obstacle/Target
+            0, 0, 0, 0, 0, -STEP_SIZE / v, 1;                                                                                                 // Distance to Obstacle/Target (s)
 
         double s_softener = ((v * v * v) / (cruising_speed * cruising_speed * cruising_speed));
 
