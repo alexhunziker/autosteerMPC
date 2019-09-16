@@ -12,12 +12,12 @@ Ts = 0.1;
 Vx = 4.0;
 
 % Vehicule Parameter set up
-m = 50;     % Mass
-lf = 1;     % Distance mass center/front wheel
-lr = 1;     % Distance mass center/rear wheel
-cf = 19000; % Cornering Stiffness front
-cr = 33000; % Cornering Stiffness rear
-iz = 2800;  % Yaw Moment of Innertia
+m = 30;     % Mass
+lf = 0.7;   % Distance mass center/front wheel
+lr = 0.3;   % Distance mass center/rear wheel
+cf = 300;   % Cornering Stiffness front
+cr = 300;   % Cornering Stiffness rear
+iz = 100;   % Yaw Moment of Innertia?
 
 % TODO: Non-linear model goes here
 
@@ -30,23 +30,26 @@ iz = 2800;  % Yaw Moment of Innertia
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Continuous-time model
-Ac = [0, 0, -Vx, 0, -1, Vx;
-       0, 0, Vx, 0, 1, 0;
-       0, 0, 0, 1, 0, 0;
-       0, 0, 0, -(2*cf*lf^2+2*cr*lr^2)/iz/Vx, -(2*cf*lf-2*cr*lr)/iz/Vx, 0;
-       0, 0, 0,  -Vx-(2*cf*lf-2*cr*lr)/m/Vx, -(2*cf+2*cr)/m/Vx, 0;
-       0, 0, 0, 0, 0, -.1];
+Ac = [0, 0, -Vx, 0, -1, Vx, 0;
+       0, 0, Vx, 0, 1, 0, 0;
+       0, 0, 0, 1, 0, 0, 0;
+       0, 0, 0, -(2*cf*lf^2+2*cr*lr^2)/iz/Vx, -(2*cf*lf-2*cr*lr)/iz/Vx, 0, 0;
+       0, 0, 0,  -Vx-(2*cf*lf-2*cr*lr)/m/Vx, -(2*cf+2*cr)/m/Vx, 0, 0;
+       0, 0, 0, 0, 0, -.1, 0;
+       0, 0, 0, -Vx, 0, 1/Vx, 0];
    
- Bc = [0, 0, 0, 2*cf*lf/iz, 2*cf/m, 0;
-        0, 0, 0, 0, 0, 1]';
+ Bc = [0, 0, 0, 2*cf*lf/iz, 2*cf/m, 0, 0;
+        0, 0, 0, 0, 0, 1, 0;
+        0, 0, 0, 0, 0, -2, 0]';
  
  % Position, Yaw, Speed
- Cc = [1, 0, 0, 0, 0, 0;
-        0, 1, 0, 0, 0, 0;
-        0, 0, 1, 0, 0, 0;
-        0, 0, 0, 0, 0, 1];
+ Cc = [1, 0, 0, 0, 0, 0, 0;
+        0, 1, 0, 0, 0, 0, 0;
+        0, 0, 1, 0, 0, 0, 0;
+        0, 0, 0, 0, 0, 1, 0;
+        0, 0, 0, 0, 0, 0, 1];
     
- Dc = zeros(4, 2);
+ Dc = zeros(5, 3);
 
 ss_model = ss(Ac, Bc, Cc, Dc);
 
@@ -82,9 +85,9 @@ bycicle_mpc.OV(3).Max = pi;
 % specify overall adjustment factor applied to weights
 beta = 0.96079;
 % specify weights
-bycicle_mpc.Weights.MV = [0 0]*beta;
-bycicle_mpc.Weights.MVRate = [0.2 0.1]/beta;
-bycicle_mpc.Weights.OV = [0 0 2 0.1]*beta;
+bycicle_mpc.Weights.MV = [0 0 0]*beta;
+bycicle_mpc.Weights.MVRate = [0.2 0.1 0]/beta;
+bycicle_mpc.Weights.OV = [0 0 2 0.1 0]*beta;
 bycicle_mpc.Weights.ECR = 100000;              % Constraint Softening, default
 % specify simulation options
 options = mpcsimopt();

@@ -1,6 +1,7 @@
 % X = PositionX, PositionY, YawAngle, YawAngle_Dot, PosY_Dot, Velocity
 % Y = Steering Angle, Velocity
 x = [0, 0, 0, 0, 0, 0];  % just so it is defined
+Vx = 4;
 
 % Vx (longitudional velocity) actually needs to be updated, model is non
 % linear, this needs to be done in an adaptive MPC
