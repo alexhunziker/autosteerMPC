@@ -1,5 +1,5 @@
 %% create MPC controller object with sample time
-mpc1 = mpc(ss_model, 0.1);
+mpc1 = mpc(ss_model, 0.01);
 %% specify prediction horizon
 mpc1.PredictionHorizon = 10;
 %% specify control horizon
