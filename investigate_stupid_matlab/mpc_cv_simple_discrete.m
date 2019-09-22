@@ -18,7 +18,7 @@ mpc2.MV(1).RateMaxECR = 0.01;
 %% specify weights
 mpc2.Weights.MV = [0 0];
 mpc2.Weights.MVRate = [0.1 0.1];
-mpc2.Weights.OV = [2 0 1 0 100];
+mpc2.Weights.OV = [5 0 1 0 10];
 mpc2.Weights.ECR = 100000;
 %% specify simulation options
 options = mpcsimopt();
