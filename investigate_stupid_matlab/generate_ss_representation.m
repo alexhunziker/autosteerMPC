@@ -12,15 +12,18 @@ Ts = 0.01;
 Vx = 2.0;
 
 % Continuous-time model
-Ac = [0, 1, 0;
-       0, -(cr*lr^2+cf*lf^2)/(iz*Vx), -(cr*lr-cf*lf)/iz;
-       0, 1-(cr*lr-cf*lf)/(m*Vx^2), -(cf+cr)/(m*Vx)];
-   
-Bc = [0, cf*lf/iz, -cf/(m*Vx)]';
+Ac = [0, 0, Vx, 0, -Vx;
+       0, 0, 1, 0, 0;
+       0, 0, -(cr*lr^2+cf*lf^2)/(iz*Vx), -(cr*lr-cf*lf)/iz, 0;
+       0, 0, 1-(cr*lr-cf*lf)/(m*Vx^2), -(cf+cr)/(m*Vx), 0;
+       0, 0, 0, 0, -1];
+       
+Bc = [0, 0, cf*lf/iz, -cf/(m*Vx), 0;
+      0, 0, 0, 0, -1]';
  
 % Position, Yaw, Speed
-Cc = eye(3);
+Cc = eye(5);
     
-Dc = zeros(3, 1);
+Dc = zeros(5, 2);
 
 ss_model = ss(Ac, Bc, Cc, Dc);
