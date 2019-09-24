@@ -19,14 +19,13 @@ Prerequisite: cmake installed
   - Comment out `echo 'KERNEL=="ttyACM*", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", MODE:="0666", GROUP:="dialout", SYMLINK+="ydlidar"' >/etc/udev/rules.d/ydlidar-V2.rules` in `startup/initev.sh`
   - Replace all occurences of `<linux/types.h>` with `<sys/sysmacros.h>` in the project
 - now we can build the project and test the sensor by:
-  ````
+  ```
   $ mkdir build
   $ cd build
   $ cmake ../
   $ make
   $ ./ydlidar_test
   ```
-  ````
 
 ## Build the module
 
@@ -39,3 +38,4 @@ cmake --build .
 ```
 
 It will create a shared object (.so) which is needed to include the module via ctypes with the rest of the project as well as an executable to test the module standalone.
+The lidar.ini file configures the LIDAR sensor. It needs to be copied to the folder from which the program/shared object is called.
