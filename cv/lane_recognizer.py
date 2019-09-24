@@ -27,7 +27,7 @@ class LaneRecognizer(object):
         while not self.stop:
             self.target_yaw_rate = self.analyze_frame()
 
-    def stop(self):
+    def stop_measuring(self):
         self.stop = True
 
     def analyze_frame(self):
