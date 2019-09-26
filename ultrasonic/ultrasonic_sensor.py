@@ -16,6 +16,7 @@ class UltrasonicSensor(object):
         self.stop = False
         self.verbose = verbose
         self.last_valid = time.time()
+        self.measured_distance = None
         measure_thread = threading.Thread(target=self.measure_loop)
         measure_thread.start()
 

@@ -22,3 +22,7 @@ ADD_EXECUTABLE(${PROJECT_NAME}
 
 # Add the required libraries for linking:
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ydlidar_driver)
+
+# Shared Library
+add_library(lidar_sensor SHARED lidar.cpp)
+TARGET_LINK_LIBRARIES(lidar_sensor ydlidar_driver)

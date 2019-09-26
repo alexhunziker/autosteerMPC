@@ -10,25 +10,34 @@ using namespace ydlidar;
 
 #define PI 3.142
 
-const bool debug = true;
+bool stop = false;
+
+const bool debug = false;
 double distances[160];
 int last_valid[160];
 
-int getIndexForAngle(double angleRad)
+// extern C allows to use C-Linkage for next scope, required for ctypes,
+extern "C"
 {
-    return int((angleRad + PI / 2) * 50);
-}
 
-double getDistanceForAngle(double angleRad)
-{
-    int index = getIndexForAngle(angleRad);
-    return distances[index];
-}
+    int getIndexForAngle(double angleRad)
+    {
+        return int((angleRad + PI / 2) * 50);
+    }
 
-int getLastValidForAngle(double angleRad)
-{
-    int index = getIndexForAngle(angleRad);
-    return last_valid[index];
+    double getDistanceForAngle(double angleRad)
+    {
+        int index = getIndexForAngle(angleRad);
+        cout << "returning " << distances[index] * 100 << " for angle " << angleRad << "\n";
+        return distances[index] * 100;
+    }
+
+    int getLastValidForAngle(double angleRad)
+    {
+        // Returns time in s since UTC epoch
+        int index = getIndexForAngle(angleRad);
+        return last_valid[index] / 100000000;
+    }
 }
 
 std::vector<float> split(const std::string &s, char delim)
@@ -61,7 +70,8 @@ void LaserScanCallback(const LaserScan &scan)
 
         if (intensity >= 1)
         {
-            // TODO: Do this with settings of YDLIDAR (set range)
+            // Scanning range is also restricted in lidar.ini
+            // (only points ahead of vehicule are relevant)
             if (angle < (PI / 2) && angle > (-PI / 2) && distance > 0)
             {
                 int idx = getIndexForAngle(angle);
@@ -72,110 +82,118 @@ void LaserScanCallback(const LaserScan &scan)
     }
 }
 
-int main(int argc, char *argv[])
+extern "C"
 {
-    // Set up variables to read Configuration
-    ydlidar::init(argc, argv);
-    CSimpleIniA ini;
-    ini.SetUnicode();
-    LaserParamCfg cfg;
-    std::string ini_file = "lidar.ini";
-
-    // Read Configurations
-    SI_Error rc = ini.LoadFile(ini_file.c_str());
-    if (rc >= 0)
+    void stop_measuring()
     {
-        const char *pszValue = ini.GetValue("LIDAR", "serialPort", "");
-        cfg.serialPort = pszValue;
-
-        pszValue = ini.GetValue("LIDAR", "ignoreArray", "");
-
-        cfg.ignoreArray = split(pszValue, ',');
-
-        cfg.serialBaudrate = ini.GetLongValue("LIDAR", "serialBaudrate", cfg.serialBaudrate);
-        cfg.sampleRate = ini.GetLongValue("LIDAR", "sampleRate", cfg.sampleRate);
-        cfg.scanFrequency = ini.GetLongValue("LIDAR", "scanFrequency", cfg.scanFrequency);
-
-        cfg.intensity = ini.GetBoolValue("LIDAR", "intensity", cfg.intensity);
-        cfg.autoReconnect = ini.GetBoolValue("LIDAR", "autoReconnect", cfg.autoReconnect);
-        cfg.exposure = ini.GetBoolValue("LIDAR", "exposure", cfg.exposure);
-        cfg.fixedResolution = ini.GetBoolValue("LIDAR", "fixedResolution", cfg.fixedResolution);
-        cfg.reversion = ini.GetBoolValue("LIDAR", "reversion", cfg.reversion);
-        cfg.heartBeat = ini.GetBoolValue("LIDAR", "heartBeat", cfg.heartBeat);
-
-        cfg.maxAngle = ini.GetDoubleValue("LIDAR", "maxAngle", cfg.maxAngle);
-        cfg.minAngle = ini.GetDoubleValue("LIDAR", "minAngle", cfg.minAngle);
-        cfg.maxRange = ini.GetDoubleValue("LIDAR", "maxRange", cfg.maxRange);
-        cfg.minRange = ini.GetDoubleValue("LIDAR", "minRange", cfg.minRange);
+        stop = true;
     }
 
-    try
+    int main(int argc, char *argv[])
     {
-        // Configure ydlidar Port and try to auto-fix if possible
-        LIDAR ydlidar;
-        std::vector<string> ports = ydlidar.getLidarList();
+        // Set up variables to read Configuration
+        ydlidar::init(argc, argv);
+        CSimpleIniA ini;
+        ini.SetUnicode();
+        LaserParamCfg cfg;
+        std::string ini_file = "lidar.ini";
 
-        if (ports.size() > 1)
+        // Read Configurations
+        SI_Error rc = ini.LoadFile(ini_file.c_str());
+        if (rc >= 0)
         {
-            printf("ERROR: Multiple possible LIDARs detected, shold be 1");
+            const char *pszValue = ini.GetValue("LIDAR", "serialPort", "");
+            cfg.serialPort = pszValue;
+
+            pszValue = ini.GetValue("LIDAR", "ignoreArray", "");
+
+            cfg.ignoreArray = split(pszValue, ',');
+
+            cfg.serialBaudrate = ini.GetLongValue("LIDAR", "serialBaudrate", cfg.serialBaudrate);
+            cfg.sampleRate = ini.GetLongValue("LIDAR", "sampleRate", cfg.sampleRate);
+            cfg.scanFrequency = ini.GetLongValue("LIDAR", "scanFrequency", cfg.scanFrequency);
+
+            cfg.intensity = ini.GetBoolValue("LIDAR", "intensity", cfg.intensity);
+            cfg.autoReconnect = ini.GetBoolValue("LIDAR", "autoReconnect", cfg.autoReconnect);
+            cfg.exposure = ini.GetBoolValue("LIDAR", "exposure", cfg.exposure);
+            cfg.fixedResolution = ini.GetBoolValue("LIDAR", "fixedResolution", cfg.fixedResolution);
+            cfg.reversion = ini.GetBoolValue("LIDAR", "reversion", cfg.reversion);
+            cfg.heartBeat = ini.GetBoolValue("LIDAR", "heartBeat", cfg.heartBeat);
+
+            cfg.maxAngle = ini.GetDoubleValue("LIDAR", "maxAngle", cfg.maxAngle);
+            cfg.minAngle = ini.GetDoubleValue("LIDAR", "minAngle", cfg.minAngle);
+            cfg.maxRange = ini.GetDoubleValue("LIDAR", "maxRange", cfg.maxRange);
+            cfg.minRange = ini.GetDoubleValue("LIDAR", "minRange", cfg.minRange);
         }
 
-        if (cfg.serialPort != ports[0])
+        try
         {
-            printf("WARN: serial port adjusted automatically, as ini was invalid");
-            cfg.serialPort = ports[0];
-        }
+            // Configure ydlidar Port and try to auto-fix if possible
+            LIDAR ydlidar;
+            std::vector<string> ports = ydlidar.getLidarList();
 
-        if (cfg.serialPort.empty())
+            if (ports.size() > 1)
+            {
+                printf("ERROR: Multiple possible LIDARs detected, shold be 1");
+            }
+
+            if (cfg.serialPort != ports[0])
+            {
+                printf("WARN: serial port adjusted automatically, as ini was invalid");
+                cfg.serialPort = ports[0];
+            }
+
+            if (cfg.serialPort.empty())
+            {
+                printf("ERROR: Serial Port was not set and could not be detected automatically");
+            }
+
+            // Start Lidar with parameters
+            ydlidar.RegisterLIDARDataCallback(&LaserScanCallback);
+            ydlidar.UpdateLidarParamCfg(cfg);
+
+            // Measuring Loop
+            while (ydlidar::ok() && !stop)
+            {
+                try
+                {
+                    ydlidar.spinOnce();
+                }
+                catch (TimeoutException &e)
+                {
+                    std::cout << e.what() << std::endl;
+                }
+                catch (CorruptedDataException &e)
+                {
+                    std::cout << e.what() << std::endl;
+                }
+                catch (DeviceInformationException &e)
+                {
+                    std::cout << e.what() << std::endl;
+                }
+                catch (DeviceException &e)
+                {
+                    std::cerr << e.what() << std::endl;
+                    break;
+                }
+            }
+        }
+        catch (TimeoutException &e)
         {
-            printf("ERROR: Serial Port was not set and could not be detected automatically");
+            std::cout << e.what() << std::endl;
         }
-
-        // Start Lidar with parameters
-        ydlidar.RegisterLIDARDataCallback(&LaserScanCallback);
-        ydlidar.UpdateLidarParamCfg(cfg);
-
-        // Measuring Loop
-        while (ydlidar::ok())
+        catch (CorruptedDataException &e)
         {
-            try
-            {
-                ydlidar.spinOnce();
-            }
-            catch (TimeoutException &e)
-            {
-                std::cout << e.what() << std::endl;
-            }
-            catch (CorruptedDataException &e)
-            {
-                std::cout << e.what() << std::endl;
-            }
-            catch (DeviceInformationException &e)
-            {
-                std::cout << e.what() << std::endl;
-            }
-            catch (DeviceException &e)
-            {
-                std::cerr << e.what() << std::endl;
-                break;
-            }
+            std::cout << e.what() << std::endl;
         }
+        catch (DeviceInformationException &e)
+        {
+            std::cout << e.what() << std::endl;
+        }
+        catch (DeviceException &e)
+        {
+            std::cerr << e.what() << std::endl;
+        }
+        return 0;
     }
-    catch (TimeoutException &e)
-    {
-        std::cout << e.what() << std::endl;
-    }
-    catch (CorruptedDataException &e)
-    {
-        std::cout << e.what() << std::endl;
-    }
-    catch (DeviceInformationException &e)
-    {
-        std::cout << e.what() << std::endl;
-    }
-    catch (DeviceException &e)
-    {
-        std::cerr << e.what() << std::endl;
-    }
-    return 0;
 }
