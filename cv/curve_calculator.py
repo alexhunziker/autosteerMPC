@@ -13,9 +13,12 @@ class CurveCalculator(object):
     def __init__(self,
                  meters_per_pixel_x=DEFAULT_METERS_PER_PIXEL_X,
                  meters_per_pixel_y=DEFAULT_METERS_PER_PIXEL_Y,
-                 debug=False
+                 debug=False,
+                 mode="B"
                  ):
         CurveCalculator.DEBUG = debug
+        self.mode = mode
+
         self.left = [[], [], []]
         self.right = [[], [], []]
 
@@ -26,7 +29,7 @@ class CurveCalculator(object):
         self.meters_per_pixel_y = meters_per_pixel_y
 
     def sliding_window(self, img, n_windows=9, window_margin=150,
-                       minpix=1, draw_windows=True):
+                       minpix=1, draw_windows=True, mode="B"):
         image_height = img.shape[0]
         image_width = img.shape[1]
 
@@ -37,8 +40,6 @@ class CurveCalculator(object):
         # Find starting points
         histogram = self.calculate_histogram(img)
         img_middle = int(histogram.shape[0] / 2)
-        left_starting_point = np.argmax(histogram[:img_middle])
-        right_starting_point = np.argmax(histogram[img_middle:]) + img_middle
 
         # Set height of windows
         window_height = np.int(image_height / n_windows)
@@ -48,70 +49,76 @@ class CurveCalculator(object):
         nonzero_y_pixels = np.array(nonzero[0])
         nonzero_x_pixels = np.array(nonzero[1])
 
-        # TODO: set values directly?
-        current_left_x_position = left_starting_point
-        current_right_x_position = right_starting_point
+        if mode == "B" or mode == "L":
+            left_starting_point = np.argmax(histogram[:img_middle])
+            current_left_x_position = left_starting_point
+            left_lane_pixels = []
+            for window in range(n_windows):
+                window_y_lower_boundry = image_height - (window + 1) * window_height
+                window_y_upper_boundry = image_height - window * window_height
+                window_x_left_lower = current_left_x_position - window_margin
+                window_x_left_upper = current_left_x_position + window_margin
+                if CurveCalculator.DEBUG:
+                    cv2.rectangle(out_img, (window_x_left_lower, window_y_lower_boundry),
+                                  (window_x_left_upper, window_y_upper_boundry), (100, 225, 225), 3)
 
-        left_lane_pixels = []
-        right_lane_pixels = []
+                # get nonzero areas within window
+                non_zero_pixels_left = ((nonzero_y_pixels >= window_y_lower_boundry) &
+                                        (nonzero_y_pixels < window_y_upper_boundry) &
+                                        (nonzero_x_pixels >= window_x_left_lower) &
+                                        (nonzero_x_pixels < window_x_left_upper)
+                                        ).nonzero()[0]
 
-        for window in range(n_windows):
-            window_y_lower_boundry = image_height - (window + 1) * window_height
-            window_y_upper_boundry = image_height - window * window_height
-            window_x_left_lower = current_left_x_position - window_margin
-            window_x_left_upper = current_left_x_position + window_margin
-            window_x_right_lower = current_right_x_position - window_margin
-            window_x_right_upper = current_right_x_position + window_margin
+                left_lane_pixels.append(non_zero_pixels_left)
+                # Recenter next window
+                # TODO: Mean is probably not the way to go here
+                if len(non_zero_pixels_left) > minpix:
+                    current_left_x_position = np.int(np.mean(nonzero_x_pixels[non_zero_pixels_left]))
 
-            if CurveCalculator.DEBUG:
-                cv2.rectangle(out_img, (window_x_left_lower, window_y_lower_boundry),
-                              (window_x_left_upper, window_y_upper_boundry), (100, 225, 225), 3)
-                cv2.rectangle(out_img, (window_x_right_lower, window_y_lower_boundry),
-                              (window_x_right_upper, window_y_upper_boundry), (100, 225, 225), 3)
+            left_lane_pixels = np.concatenate(left_lane_pixels)
+            # Extract pixel positions
+            left_x_lane_pixels = nonzero_x_pixels[left_lane_pixels]
+            left_y_lane_pixels = nonzero_y_pixels[left_lane_pixels]
 
-            # get nonzero areas within window
-            non_zero_pixels_left = ((nonzero_y_pixels >= window_y_lower_boundry) &
-                                    (nonzero_y_pixels < window_y_upper_boundry) &
-                                    (nonzero_x_pixels >= window_x_left_lower) &
-                                    (nonzero_x_pixels < window_x_left_upper)
-                                    ).nonzero()[0]
-            non_zero_pixels_right = ((nonzero_y_pixels >= window_y_lower_boundry) &
-                                     (nonzero_y_pixels < window_y_upper_boundry) &
-                                     (nonzero_x_pixels >= window_x_right_lower) &
-                                     (nonzero_x_pixels < window_x_right_upper)
-                                     ).nonzero()[0]
+            # Fit second order polinomial
+            left_fit = np.polyfit(left_y_lane_pixels, left_x_lane_pixels, 2)
 
-            left_lane_pixels.append(non_zero_pixels_left)
-            right_lane_pixels.append(non_zero_pixels_right)
+            # TODO: Maybe do a mean over past 10 polynomials, otherwise remove block
+            self.left[0].append(left_fit[0])
+            self.left[1].append(left_fit[1])
+            self.left[2].append(left_fit[2])
 
-            # Recenter next window
-            # TODO: Mean is probably not the way to go here
-            if len(non_zero_pixels_left) > minpix:
-                current_left_x_position = np.int(np.mean(nonzero_x_pixels[non_zero_pixels_left]))
-            if len(non_zero_pixels_right) > minpix:
-                current_right_x_position = np.int(np.mean(nonzero_x_pixels[non_zero_pixels_right]))
+        if mode == "B" or mode == "R":
+            right_starting_point = np.argmax(histogram[img_middle:]) + img_middle
+            current_right_x_position = right_starting_point
+            right_lane_pixels = []
+            for window in range(n_windows):
+                window_y_lower_boundry = image_height - (window + 1) * window_height
+                window_y_upper_boundry = image_height - window * window_height
+                window_x_right_lower = current_right_x_position - window_margin
+                window_x_right_upper = current_right_x_position + window_margin
+                if CurveCalculator.DEBUG:
+                    cv2.rectangle(out_img, (window_x_right_lower, window_y_lower_boundry),
+                                  (window_x_right_upper, window_y_upper_boundry), (100, 225, 225), 3)
 
-        left_lane_pixels = np.concatenate(left_lane_pixels)
-        right_lane_pixels = np.concatenate(right_lane_pixels)
+                non_zero_pixels_right = ((nonzero_y_pixels >= window_y_lower_boundry) &
+                                         (nonzero_y_pixels < window_y_upper_boundry) &
+                                         (nonzero_x_pixels >= window_x_right_lower) &
+                                         (nonzero_x_pixels < window_x_right_upper)
+                                         ).nonzero()[0]
 
-        # Extract pixel positions
-        left_x_lane_pixels = nonzero_x_pixels[left_lane_pixels]
-        left_y_lane_pixels = nonzero_y_pixels[left_lane_pixels]
-        right_x_lane_pixels = nonzero_x_pixels[right_lane_pixels]
-        right_y_lane_pixels = nonzero_y_pixels[right_lane_pixels]
+                right_lane_pixels.append(non_zero_pixels_right)
+                if len(non_zero_pixels_right) > minpix:
+                    current_right_x_position = np.int(np.mean(nonzero_x_pixels[non_zero_pixels_right]))
 
-        # Fit second order polinomial
-        left_fit = np.polyfit(left_y_lane_pixels, left_x_lane_pixels, 2)
-        right_fit = np.polyfit(right_y_lane_pixels, right_x_lane_pixels, 2)
+            right_lane_pixels = np.concatenate(right_lane_pixels)
+            right_x_lane_pixels = nonzero_x_pixels[right_lane_pixels]
+            right_y_lane_pixels = nonzero_y_pixels[right_lane_pixels]
+            right_fit = np.polyfit(right_y_lane_pixels, right_x_lane_pixels, 2)
 
-        # TODO: Maybe do a mean over past 10 polynomials, otherwise remove block
-        self.left[0].append(left_fit[0])
-        self.left[1].append(left_fit[1])
-        self.left[2].append(left_fit[2])
-
-        self.right[0].append(right_fit[0])
-        self.right[1].append(right_fit[1])
-        self.right[2].append(right_fit[2])
+            self.right[0].append(right_fit[0])
+            self.right[1].append(right_fit[1])
+            self.right[2].append(right_fit[2])
 
         # Generate x and y values for plotting
         ploty = np.linspace(0, image_height - 1, image_height)
@@ -119,10 +126,11 @@ class CurveCalculator(object):
         self.right_fitted_curve = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
 
         if CurveCalculator.DEBUG:
-            out_img[nonzero_y_pixels[left_lane_pixels], nonzero_x_pixels[left_lane_pixels]] = [255, 0, 100]
-            out_img[nonzero_y_pixels[right_lane_pixels], nonzero_x_pixels[right_lane_pixels]] = [0, 0, 255]
+            if mode == "L" or mode == "B": out_img[
+                nonzero_y_pixels[left_lane_pixels], nonzero_x_pixels[left_lane_pixels]] = [255, 0, 100]
+            if mode == "R" or mode == "B": out_img[
+                nonzero_y_pixels[right_lane_pixels], nonzero_x_pixels[right_lane_pixels]] = [0, 0, 255]
 
-        if CurveCalculator.DEBUG:
             cv2.imshow("out", out_img)
             cv2.waitKey(0)
 
@@ -133,7 +141,7 @@ class CurveCalculator(object):
     def fit_polynom_to_lane(self, starting_poinnt):
         pass
 
-    def fit_curve_worldspace(self, img):
+    def fit_curve_worldspace(self, img, mode="B"):
         img_height: int = img.shape[0]
         lowest_y_pixel: float = img_height - 1  # "closest y pixel of curve to current position"
         curve_pixels_y: np.ndarray = np.linspace(0, lowest_y_pixel, img_height)

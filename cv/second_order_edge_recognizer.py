@@ -5,26 +5,32 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from curve_calculator import CurveCalculator
-from image_preprocessor import ImagePreprocessor
+from edge_image_preprocessor import EdgeImagePreprocessor
 from image_warper import ImageWarper
 
 
 class SecondOrderLaneRecognizer(object):
-    DEFAULT_DESTINATION_SIZE = (1280, 720)
+    DEFAULT_DESTINATION_SIZE = (800, 600)
 
     def __init__(self, destination_size=DEFAULT_DESTINATION_SIZE, debug=False):
         self.destination_size = destination_size
-        self.image_preprocessor: ImagePreprocessor = ImagePreprocessor()
+        self.image_preprocessor: EdgeImagePreprocessor = EdgeImagePreprocessor()
         self.image_warper: ImageWarper = ImageWarper()
-        self.curve_calculator: CurveCalculator = CurveCalculator(debug=debug)
+        self.curve_calculator: CurveCalculator = CurveCalculator(meters_per_pixel_x=2 / 800,
+                                                                 meters_per_pixel_y=15 / 600, debug=debug)
         self.img = None
         self.debug = debug
 
     def process(self, img):
         start_time = time.time()
         edges_image = self.image_preprocessor.process(img)
-        warped_image = self.image_warper.warp(edges_image, destination_size=self.destination_size)
-        self.curve_calculator.sliding_window(warped_image)
+        edges_image = cv2.fastNlMeansDenoising(edges_image)
+        source_roi = np.float32(
+            [(0.3, 0.3), (0.48, 0.3), (0, 1), (1, 1)])  # TODO: This needs to be adjusted to final footage
+        warped_image = self.image_warper.warp(edges_image, destination_size=self.destination_size,
+                                              source_roi_proportion=source_roi)
+        warped_image = cv2.Canny(warped_image, 0, 1)
+        self.curve_calculator.sliding_window(warped_image, mode="R")
         self.img = img
         curverad = self.get_curve_radius()
         lane_curvature = np.mean([curverad[0], curverad[1]])
@@ -34,7 +40,7 @@ class SecondOrderLaneRecognizer(object):
         return lane_curvature, curverad[2]
 
     def get_curve_radius(self):
-        return self.curve_calculator.fit_curve_worldspace(self.img)
+        return self.curve_calculator.fit_curve_worldspace(self.img, mode="R")
 
     def visualize_lane(self):
         lanes = self.curve_calculator.draw_lanes(self.img)
@@ -51,17 +57,8 @@ class SecondOrderLaneRecognizer(object):
 
 # Simplistic approach for testing
 if __name__ == "__main__":
-    mode = "lane"
-
-    secondOrderLaneRecognizer = None
-    if mode == "lane":
-        img = cv2.imread('resources/curve_1.jpg')
-        secondOrderLaneRecognizer = SecondOrderLaneRecognizer(debug=True).process(img)
-        # img = cv2.imread('resources/road_with_fixes.jpg')
-        # img = cv2.imread('resources/light_curve_2.jpg')
-    if mode == "edge":
-        img = cv2.imread('resources/campus_straight.jpg')
-        secondOrderLaneRecognizer = SecondOrderLaneRecognizer(debug=True, destination_size=(800, 600)).process(img)
+    img = cv2.imread('resources/campus_straight.jpg')
+    secondOrderLaneRecognizer = SecondOrderLaneRecognizer(debug=True, destination_size=(800, 600)).process(img)
     curverad = secondOrderLaneRecognizer.get_curve_radius()
     print(curverad)
     result_img = secondOrderLaneRecognizer.visualize_lane()

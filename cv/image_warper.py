@@ -7,8 +7,7 @@ class ImageWarper(object):
     Warps binary image into bird-view
     """
     DEFAULT_DESTINATION_SIZE = (1280, 720)
-    # DEFAULT_DESTINATION_SIZE = (608, 800)
-    DEFAULT_SOURCE_ROI = np.float32([(0.43, 0.65), (0.58, 0.65), (0.1, 1), (1, 1)])
+    DEFAULT_SOURCE_ROI = np.float32([(0.43, 0.65), (0.58, 0.65), (0.1, 1), (0.9, 1)])
     DEFAULT_DESTINATION_ROI = np.float32([(0, 0), (1, 0), (0, 1), (1, 1)])
 
     @classmethod
@@ -28,6 +27,13 @@ class ImageWarper(object):
         source_size = np.float32([(img.shape[1], img.shape[0])])
         source_roi = source_roi_proportion * source_size
         destination_roi = destination_roi_proportion * np.float32(destination_size)
+        print("SOURCE ROI")
+        print(source_roi)
+        print("DESTINATION ROI")
+        print(destination_roi)
         transformation_matrix = cv2.getPerspectiveTransform(source_roi, destination_roi)
+        print(transformation_matrix)
+
+        cv2.warpPerspective(img, transformation_matrix, destination_size)
 
         return cv2.warpPerspective(img, transformation_matrix, destination_size)
