@@ -2,7 +2,7 @@
 Ts = 0.1;
 
 % Set arbitrary speed for generating the object
-Vx = 4.0;
+Vx = 2.0;
 
 % Continuous-time model
 Ac = [0, 0, -Vx, 0, -1, 1, 0;     % TODO: Gedanke - Hier kann ich y anders brerechnen wenn y als offset zur mitte definiert wird; abzüglich yaw rate
@@ -43,7 +43,7 @@ ss_model_discrete = c2d(ss_model, Ts);
 % create MPC controller object with sample time
 cv_mpc = mpc(ss_model_discrete, Ts);
 % specify prediction horizon
-cv_mpc.PredictionHorizon = 6;
+cv_mpc.PredictionHorizon = 3;
 % specify control horizon
 cv_mpc.ControlHorizon = 3;
 % specify nominal values for inputs and outputs
@@ -65,7 +65,7 @@ beta = 0.66079;
 % specify weights
 cv_mpc.Weights.MV = [0 0.1 0.1]*beta;
 cv_mpc.Weights.MVRate = [0.2 0.1 0.1]/beta;
-cv_mpc.Weights.OV = [0 0 0 2 0 0.1 0]*beta;
+cv_mpc.Weights.OV = [0 0 0 5 0 1 0]*beta;
 cv_mpc.Weights.ECR = 100000;              % Constraint Softening, default
 % specify simulation options
 options = mpcsimopt();
