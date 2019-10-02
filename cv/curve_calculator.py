@@ -49,6 +49,8 @@ class CurveCalculator(object):
         nonzero_y_pixels = np.array(nonzero[0])
         nonzero_x_pixels = np.array(nonzero[1])
 
+        ploty = np.linspace(0, image_height - 1, image_height)
+
         if mode == "B" or mode == "L":
             left_starting_point = np.argmax(histogram[:img_middle])
             current_left_x_position = left_starting_point
@@ -88,6 +90,9 @@ class CurveCalculator(object):
             self.left[1].append(left_fit[1])
             self.left[2].append(left_fit[2])
 
+            # Generate x and y values for plotting
+            self.left_fitted_curve = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
+
         if mode == "B" or mode == "R":
             right_starting_point = np.argmax(histogram[img_middle:]) + img_middle
             current_right_x_position = right_starting_point
@@ -108,8 +113,11 @@ class CurveCalculator(object):
                                          ).nonzero()[0]
 
                 right_lane_pixels.append(non_zero_pixels_right)
+
                 if len(non_zero_pixels_right) > minpix:
                     current_right_x_position = np.int(np.mean(nonzero_x_pixels[non_zero_pixels_right]))
+                elif CurveCalculator.DEBUG:
+                    print("DEBUG: Not enough non-zero pixels to determine ROI in window ", window)
 
             right_lane_pixels = np.concatenate(right_lane_pixels)
             right_x_lane_pixels = nonzero_x_pixels[right_lane_pixels]
@@ -120,10 +128,12 @@ class CurveCalculator(object):
             self.right[1].append(right_fit[1])
             self.right[2].append(right_fit[2])
 
-        # Generate x and y values for plotting
-        ploty = np.linspace(0, image_height - 1, image_height)
-        self.left_fitted_curve = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
-        self.right_fitted_curve = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
+            self.right_fitted_curve = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
+            if len(right_lane_pixels)<200:
+                print("The expected number of pixels was at least 200, but only ", len(right_lane_pixels), "were found")
+                self.right_fitted_curve = None
+                return
+
 
         if CurveCalculator.DEBUG:
             if mode == "L" or mode == "B": out_img[
@@ -142,31 +152,43 @@ class CurveCalculator(object):
         pass
 
     def fit_curve_worldspace(self, img, mode="B"):
+
+        left_curve_radius = None
+        right_curve_radius = None
+        if (mode == "B" or mode == "L") and self.left_fitted_curve is not None:
+            left_curve_radius, current_left_x = self.get_curve_radius(img, self.left_fitted_curve)
+        elif mode == "B" and self.left_fitted_curve is None:
+            mode == "R"
+        elif mode == "L":
+            print("Mode was ", mode, ", however no left curve was found")
+            return (None, None, None)
+
+        if (mode == "B" or mode == "R") and self.right_fitted_curve is not None:
+            right_curve_radius, current_right_x = self.get_curve_radius(img, self.right_fitted_curve)
+        elif mode == "B" and self.right_fitted_curve is None:
+            mode == "L"
+        elif mode == "R":
+            print("Mode was ", mode, ", however no right curve was found")
+            return (None, None, None)
+
+        car_position = img.shape[1] / 2  # car assumed to be in the middle of image
+        distance = None
+        if mode == "B": distance = (car_position-(current_right_x + current_left_x)/2) * self.meters_per_pixel_x / 10
+        if mode == "R": distance = (car_position-current_right_x) * self.meters_per_pixel_x / 10
+        if mode == "L": distance = (car_position - current_left_x) * self.meters_per_pixel_x / 10
+
+        return (left_curve_radius, right_curve_radius, distance)
+
+    def get_curve_radius(self, img, x_points):
         img_height: int = img.shape[0]
         lowest_y_pixel: float = img_height - 1  # "closest y pixel of curve to current position"
         curve_pixels_y: np.ndarray = np.linspace(0, lowest_y_pixel, img_height)
-
-        # Fit polynomial in wolrld space
-        left_fit_curve = np.polyfit(curve_pixels_y * self.meters_per_pixel_y,
-                                    self.left_fitted_curve * self.meters_per_pixel_x,
-                                    2)
-        right_fit_curve = np.polyfit(curve_pixels_y * self.meters_per_pixel_y,
-                                     self.right_fitted_curve * self.meters_per_pixel_x,
-                                     2)
-
-        # Calculate radii
-        left_curve_radius = ((1 + (2 * left_fit_curve[0] * lowest_y_pixel * self.meters_per_pixel_y + left_fit_curve[
-            1]) ** 2) ** 1.5) / np.absolute((2 * left_fit_curve[0]))
-        right_fit_radius = ((1 + (2 * right_fit_curve[0] * lowest_y_pixel * self.meters_per_pixel_y + right_fit_curve[
-            1]) ** 2) ** 1.5) / np.absolute((2 * right_fit_curve[0]))
-
-        #  get center
-        car_position = img.shape[1] / 2  # car assumed to be in the middle of image
-        l_fit_x_int = left_fit_curve[0] * img.shape[0] ** 2 + left_fit_curve[1] * img.shape[0] + left_fit_curve[2]
-        r_fit_x_int = right_fit_curve[0] * img.shape[0] ** 2 + right_fit_curve[1] * img.shape[0] + right_fit_curve[2]
-        lane_center = (r_fit_x_int + l_fit_x_int) / 2
-        center = (car_position - lane_center) * self.meters_per_pixel_x / 10
-        return (left_curve_radius, right_fit_radius, center)
+        fitted_curve = np.polyfit(curve_pixels_y * self.meters_per_pixel_y, x_points * self.meters_per_pixel_x, 2)
+        # Calculate radius
+        curve_radius = ((1 + (2 * fitted_curve[0] * lowest_y_pixel * self.meters_per_pixel_y + fitted_curve[
+            1]) ** 2) ** 1.5) / np.absolute((2 * fitted_curve[0]))
+        current_x = fitted_curve[0] * img.shape[0] ** 2 + fitted_curve[1] * img.shape[0] + fitted_curve[2]
+        return curve_radius, current_x
 
     def draw_lanes(self, img):
         ploty = np.linspace(0, img.shape[0] - 1, img.shape[0])

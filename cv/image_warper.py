@@ -27,12 +27,7 @@ class ImageWarper(object):
         source_size = np.float32([(img.shape[1], img.shape[0])])
         source_roi = source_roi_proportion * source_size
         destination_roi = destination_roi_proportion * np.float32(destination_size)
-        print("SOURCE ROI")
-        print(source_roi)
-        print("DESTINATION ROI")
-        print(destination_roi)
         transformation_matrix = cv2.getPerspectiveTransform(source_roi, destination_roi)
-        print(transformation_matrix)
 
         cv2.warpPerspective(img, transformation_matrix, destination_size)
 

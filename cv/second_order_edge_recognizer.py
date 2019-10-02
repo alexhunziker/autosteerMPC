@@ -30,10 +30,10 @@ class SecondOrderLaneRecognizer(object):
         warped_image = self.image_warper.warp(edges_image, destination_size=self.destination_size,
                                               source_roi_proportion=source_roi)
         warped_image = cv2.Canny(warped_image, 0, 1)
-        self.curve_calculator.sliding_window(warped_image, mode="R")
+        self.curve_calculator.sliding_window(warped_image, mode="R", minpix=40)
         self.img = img
         curverad = self.get_curve_radius()
-        lane_curvature = np.mean([curverad[0], curverad[1]])
+        lane_curvature = curverad[1]
         print("INFO: Curvature (m):", lane_curvature, "vehicle offset (m):", curverad[2])
         print("curverad", curverad)
         print("INFO: Image processed in ", time.time() - start_time, "s")
