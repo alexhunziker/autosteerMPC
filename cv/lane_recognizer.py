@@ -8,9 +8,9 @@ from .second_order_lane_recognizer import SecondOrderLaneRecognizer
 
 
 class LaneRecognizer(object):
-    RESOLUTION = (1280, 720)
+    RESOLUTION = (800, 600)
 
-    def __init__(self, camera, debug=False):
+    def __init__(self, camera, debug=False, mode="edges"):
         self.debug = debug
         self.camera_object = camera
         self.curve_radius = None
