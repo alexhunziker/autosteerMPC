@@ -1,4 +1,5 @@
 import time
+import threading
 
 from actuator_bridge import ActuatorBridge
 from health_checker import HealthChecker
@@ -28,18 +29,24 @@ class Coordinator(object):
     def start_trip(self, start, destination):
         self.health_checker.double_flash()
         self.path_manager.retrieve_path(start, destination)
-        while self.active:
-            self.main_loop()
-            time.sleep(Coordinator.STEP_TIME)
+        coordinator_thread = threading.Thread(target=self.main_loop)
+        coordinator_thread.start()
 
     def main_loop(self):
-        parameters = self.sensor_fuser.retrieve_updates()
-        self.path_manager.potentially_update_next(parameters.gps)
-        parameters.next_target = self.path_manager.get_next()
-        self.health_checker.check(parameters)
-        impulses = self.mpc_bridge.request_step(parameters)
-        self.actuator_bridge.send(impulses)
+        while self.active:
+            parameters = self.sensor_fuser.retrieve_updates()
+            self.path_manager.potentially_update_next(parameters.gps)
+            parameters.next_target = self.path_manager.get_next()
+            self.health_checker.check(parameters)
+            impulses = self.mpc_bridge.request_step(parameters)
+            self.actuator_bridge.send(impulses)
+            time.sleep(Coordinator.STEP_TIME)
+        self.sensor_fuser.stop()
 
 
 if __name__ == "__main__":
-    Coordinator().start_trip("0xa", "0xab")
+    coordinator = Coordinator()
+    coordinator.start_trip("0xa", "0xab")
+    time.sleep(20)
+    coordinator.stop_system()
+

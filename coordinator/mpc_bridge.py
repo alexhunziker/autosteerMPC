@@ -31,7 +31,7 @@ class MPCBridge(object):
         return self.last_controls
 
     def emergency_break_condition(self, parameters):
-        return (parameters.ultrasonic < 400) and (parameters.ultrasonic < 2 * parameters.speed)
+        return (parameters.distance < 400) and (parameters.distance < 2 * parameters.speed)
 
     def apply_emergency_break(self, impulses):
         impulses.breaks = 1.0

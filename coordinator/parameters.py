@@ -6,10 +6,10 @@ class Parameters(object):
         self.distance = 500
         self.distance_timestamp = None
 
-        self.gps = {"lat": None, "lon": None, "altitude": None, "speed": None}
+        self.gps = {"lat": 0, "lon": 0, "altitude": None, "speed": None}
         self.gps_timestamp = None
 
-        self.next_target = None
+        self.next_target = (0, 0)
 
         self.lane_curvature = None
         self.lateral_offset = None
@@ -17,7 +17,7 @@ class Parameters(object):
 
         self.yaw_rate = None
 
-        self.yaw_target = None
+        self.yaw_target = 0
         self.yaw_target_timestamp = None
 
         self.speed = 0
@@ -25,8 +25,10 @@ class Parameters(object):
 
     def update_target_yaw(self):
         try:
-            math.atan2(self.gps["lon"] - self.next_target.y, self.gps["lat"] - self.next_target.y)
+            self.yaw_target = math.atan2(self.gps["lon"] - self.next_target[1], self.gps["lat"] - self.next_target[0])
             self.yaw_target_timestamp = time.time()
+        except:
+            print("ERR: Updating target yaw failed. Next target is", self.next_target, " and gps data is", self.gps)
 
     def __str__(self):
         state_string = "Distance " + str(self.distance) + "cm" + "\n"
@@ -35,7 +37,7 @@ class Parameters(object):
         state_string += "Lane curvature " + str(self.lane_curvature) + "\n"
         state_string += "Lateral offset " + str(self.lateral_offset) + "\n"
         state_string += "speed " + str(self.speed) + "m/s" + "\n"
-        state_string += "yaw rate " + str(self.speed) + "rad/s" + "\n"
+        state_string += "yaw rate " + str(self.speed) + " rad/s" + "\n"
         return state_string
 
 

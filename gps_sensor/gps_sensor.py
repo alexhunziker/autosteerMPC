@@ -19,13 +19,14 @@ class GPSSensor(object):
         while True:
             if self.stop:
                 break
-            self.gps = {
+            gps_received = {
                 "lat": gpsd.fix.latitude,
                 "lon": gpsd.fix.longitude,
                 "altitude": gpsd.fix.altitude,
                 "speed": gpsd.fix.speed
             }
             if self.gps["lat"] > 0:
+                self.gps = gps_received
                 self.last_valid = time.time()
             if self.verbose:
                 print(self.gps)
@@ -40,4 +41,4 @@ class GPSSensor(object):
 
 
 if __name__ == "__main__":
-    GPSSensor()
+    GPSSensor(verbose=True)

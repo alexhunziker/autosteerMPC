@@ -2,15 +2,13 @@ import ctypes
 import sys
 import time
 import threading
-
 sys.path.append('../')
 
-from parameters import Parameters
-from camera.camera import Camera
-from cv.lane_recognizer import LaneRecognizer
-from ultrasonic.ultrasonic_sensor import UltrasonicSensor
 from gps_sensor.gps_sensor import GPSSensor
-
+from ultrasonic.ultrasonic_sensor import UltrasonicSensor
+from cv.lane_recognizer import LaneRecognizer
+from camera.camera import Camera
+from parameters import Parameters
 
 class SensorFuser(object):
     LIDAR_CUTOFF = 2.0
@@ -18,10 +16,10 @@ class SensorFuser(object):
     def __init__(self, verbose=True):
         self.verbose = verbose
         self.ultrasonic = UltrasonicSensor(verbose=False)
-        self.gps = GPSSensor(verbose=False)
-        self.camera = Camera(verbose=False)
+        self.gps = GPSSensor(verbose=True)
+        self.camera = Camera(verbose=True)
         self.lane_recognizer = LaneRecognizer(self.camera)
-        
+
         self.lidar = ctypes.CDLL("../lidar/build/liblidar_sensor.so")
         self.lidar.getDistanceForAngle.argtypes = ([ctypes.c_double])
         self.lidar.getDistanceForAngle.restype = ctypes.c_double
@@ -59,7 +57,8 @@ class SensorFuser(object):
         ultrasonic_dist = self.ultrasonic.retrieve_state()
         lidar_dist = self.lidar.getDistanceForAngle(ctypes.c_double(0))-5
         if ultrasonic_dist > 500:
-            parameters.distance = lidar_dist      # TODO: RENAME
+            parameters.distance = lidar_dist
+            parameters.distance_timestamp = self.ultrasonic.last_valid
         else:
             parameters.distance = min(lidar_dist, ultrasonic_dist)
             if lidar_dist < ultrasonic_dist:
@@ -67,21 +66,24 @@ class SensorFuser(object):
                     print("DEBUG: Taking lidar distance of ", lidar_dist)
                 parameters.distance = lidar_dist
                 parameters.distance_timestamp = self.lidar.getLastValidForAngle(0)
-            else: 
+            else:
                 if(self.verbose):
                     print("DEBUG: Taking ultrasonic distance of ", ultrasonic_dist)
                 parameters.distance = ultrasonic_dist
                 parameters.distance_timestamp = self.ultrasonic.last_valid
 
-    def adjust_distance_for_target_direction(self, parameters):   # TODO: LIDAR class, let's see if this makes sense. Also GPS version only a ce moment la.
-        distance_target_yaw_direction = self.lidar.getDistanceForAngle(ctypess.c_double(parameters.yaw_target))
+    # TODO: LIDAR class, let's see if this makes sense. Also GPS version only a ce moment la.
+    def adjust_distance_for_target_direction(self, parameters):
+        distance_target_yaw_direction = self.lidar.getDistanceForAngle(
+            ctypes.c_double(parameters.yaw_target))
         if parameters.speed / distance_target_yaw_direction > 3:
             return
-        
+
         probe_angle = parameters.yaw_target
-        while(abs(probe_angle) > 0):
-            probe_distance_coll = parameters.speec / self.lidar.getDistanceForAngle(ctypes.c_double(parameters.probe_angle))
-            if time.time()-self.lidar.getLastValidForAngle(ctypess.c_double(parameters.probe_angle))<self.LIDAR_CUTOFF and (current_distance_coll=>3 or current_distance_coll > distance_target_yaw_direction*1.5): # TODO: Las condition sensible?  also define cutoff
+        while(abs(probe_angle) > 0.4):
+            probe_distance_coll = parameters.speed / \
+                self.lidar.getDistanceForAngle(ctypes.c_double(parameters.probe_angle))
+            if time.time()-self.lidar.getLastValidForAngle(ctypes.c_double(parameters.probe_angle)) < self.LIDAR_CUTOFF and (probe_distance_coll > 3 or probe_distance_coll > distance_target_yaw_direction*1.5):  # TODO: Las condition sensible?  also define cutoff
                 parameters.yaw_target = probe_angle
                 break
             if(parameters.yaw_target) > 0:
@@ -89,9 +91,10 @@ class SensorFuser(object):
             else:
                 probe_angle += 0.02
 
+
 if __name__ == "__main__":
-        fuser = SensorFuser()
-        time.sleep(10)
-        parameters = fuser.retrieve_updates()
-        fuser.stop()
-        print(parameters)
+    fuser = SensorFuser()
+    time.sleep(10)
+    parameters = fuser.retrieve_updates()
+    fuser.stop()
+    print(parameters)
