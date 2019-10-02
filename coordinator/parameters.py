@@ -1,3 +1,6 @@
+import math
+import time
+
 class Parameters(object):
     def __init__(self):
         self.distance = 500
@@ -14,8 +17,16 @@ class Parameters(object):
 
         self.yaw_rate = None
 
+        self.yaw_target = None
+        self.yaw_target_timestamp = None
+
         self.speed = 0
         self.speed_timestamp = None
+
+    def update_target_yaw(self):
+        try:
+            math.atan2(self.gps["lon"] - self.next_target.y, self.gps["lat"] - self.next_target.y)
+            self.yaw_target_timestamp = time.time()
 
     def __str__(self):
         state_string = "Distance " + str(self.distance) + "cm" + "\n"

@@ -13,6 +13,8 @@ from gps_sensor.gps_sensor import GPSSensor
 
 
 class SensorFuser(object):
+    LIDAR_CUTOFF = 2.0
+
     def __init__(self, verbose=True):
         self.verbose = verbose
         self.ultrasonic = UltrasonicSensor(verbose=False)
@@ -33,8 +35,10 @@ class SensorFuser(object):
 
     def retrieve_updates(self):
         parameters = Parameters()
+        parameters.update_target_yaw()
 
         self.get_distance(parameters)
+        self.adjust_distance_for_target_direction(parameters)
 
         parameters.gps = self.gps.retrieve_state()
         parameters.gps_timestamp = self.gps.last_valid
@@ -69,23 +73,21 @@ class SensorFuser(object):
                 parameters.distance = ultrasonic_dist
                 parameters.distance_timestamp = self.ultrasonic.last_valid
 
-    #def correct_yaw_if_blocked(self):   # TODO: Does not belong here
-    #    distance_target_yaw_direction = self.lidar.getDistanceForAngle(ctypess.c_double(parameters.yaw_target))
-    #    if parameters.speed / parameters.ultrasonic > 3:
-    #        return
-    #    
-    #    probe_angle = parameters.yaw_target
-    #    while(abs(parameters.yaw_target) > 0):
-    #        current_distance = self.lidar.getDistanceForAngle(ctypes.c_double(parameters.probe_angle))
-    #        if self.lidar.getLastValidForAngle(ctypess.c_double(parameters.probe_angle))<CUTOFF and (current_distance>3 or current_distance > distance_target_yaw_direction*1.5): # TODO: Las condition sensible?  also define cutoff
-    #            parameters.yaw_target = probe_angle
-    #            break
-    #        if(parameters.yaw_target) > 0:
-    #            probe_angle -= 0.02
-    #        else:
-    #            probe_angle += 0.02
-    #    parameters.target_speed = getSpeedForAngle(probe_angle)
-
+    def adjust_distance_for_target_direction(self, parameters):   # TODO: LIDAR class, let's see if this makes sense. Also GPS version only a ce moment la.
+        distance_target_yaw_direction = self.lidar.getDistanceForAngle(ctypess.c_double(parameters.yaw_target))
+        if parameters.speed / distance_target_yaw_direction > 3:
+            return
+        
+        probe_angle = parameters.yaw_target
+        while(abs(probe_angle) > 0):
+            probe_distance_coll = parameters.speec / self.lidar.getDistanceForAngle(ctypes.c_double(parameters.probe_angle))
+            if time.time()-self.lidar.getLastValidForAngle(ctypess.c_double(parameters.probe_angle))<self.LIDAR_CUTOFF and (current_distance_coll=>3 or current_distance_coll > distance_target_yaw_direction*1.5): # TODO: Las condition sensible?  also define cutoff
+                parameters.yaw_target = probe_angle
+                break
+            if(parameters.yaw_target) > 0:
+                probe_angle -= 0.02
+            else:
+                probe_angle += 0.02
 
 if __name__ == "__main__":
         fuser = SensorFuser()

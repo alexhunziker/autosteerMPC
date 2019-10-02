@@ -38,6 +38,12 @@ extern "C"
         int index = getIndexForAngle(angleRad);
         return last_valid[index] / 100000000;
     }
+
+    void adjustedAngleAndDistance(double *angle, double *distance)
+    {
+        *angle = 23.0;
+        *distance = 2.3;
+    }
 }
 
 std::vector<float> split(const std::string &s, char delim)
