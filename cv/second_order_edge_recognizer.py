@@ -4,12 +4,12 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-from curve_calculator import CurveCalculator
-from edge_image_preprocessor import EdgeImagePreprocessor
-from image_warper import ImageWarper
+from .curve_calculator import CurveCalculator
+from .edge_image_preprocessor import EdgeImagePreprocessor
+from .image_warper import ImageWarper
 
 
-class SecondOrderLaneRecognizer(object):
+class SecondOrderEdgerecognizer(object):
     DEFAULT_DESTINATION_SIZE = (800, 600)
 
     def __init__(self, destination_size=DEFAULT_DESTINATION_SIZE, debug=False):
