@@ -32,3 +32,17 @@ class ImageWarper(object):
         cv2.warpPerspective(img, transformation_matrix, destination_size)
 
         return cv2.warpPerspective(img, transformation_matrix, destination_size)
+
+    def inv_perspective_warp(self, img,
+                             dst_size=DEFAULT_DESTINATION_SIZE,
+                             src=DEFAULT_DESTINATION_ROI,
+                             dst=DEFAULT_SOURCE_ROI):
+        img_size = np.float32([(img.shape[1], img.shape[0])])
+        # Transform relative values to img size
+        src = src * img_size
+        dst = dst * np.float32(dst_size)
+        # calculate the perspective transform matrix
+        M = cv2.getPerspectiveTransform(src, dst)
+        # Warp
+        warped = cv2.warpPerspective(img, M, dst_size)
+        return warped

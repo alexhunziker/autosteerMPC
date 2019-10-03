@@ -3,6 +3,8 @@ from typing import List
 import cv2
 import numpy as np
 
+from image_warper import ImageWarper
+
 
 class CurveCalculator(object):
     DEBUG = False
@@ -28,119 +30,99 @@ class CurveCalculator(object):
         self.meters_per_pixel_x = meters_per_pixel_x
         self.meters_per_pixel_y = meters_per_pixel_y
 
-    def sliding_window(self, img, n_windows=9, window_margin=150,
+    def recognize_curve(self, img, n_windows=9, window_margin=150,
                        minpix=1, draw_windows=True, mode="B"):
+        if self.mode == "B" or self.mode == "L":
+            pass
+        if self.mode == "B" or self.mode == "R":
+            pass
+
+    def sliding_window(self, img, left_lane, n_windows=9, window_margin=150,
+                        minimum_pixels=1, draw_windows=True):
         image_height = img.shape[0]
-        image_width = img.shape[1]
+        window_height = np.int(image_height / n_windows)
+        y_range = np.linspace(0, image_height - 1, image_height)
+        fit = np.empty(3)
 
-        left_fit = np.empty(3)
-        right_fit = np.empty(3)
-        out_img = np.dstack((img, img, img)) * 255
+        out_img = None
+        if CurveCalculator.DEBUG: out_img = np.dstack((img, img, img)) * 255
 
-        # Find starting points
+        # Starting Point calculation
         histogram = self.calculate_histogram(img)
         img_middle = int(histogram.shape[0] / 2)
-
-        # Set height of windows
-        window_height = np.int(image_height / n_windows)
+        starting_point = None
+        if left_lane:
+            starting_point = np.argmax(histogram[:img_middle])
+        else:
+            starting_point = np.argmax(histogram[img_middle:])
 
         # Identify x and y positions of nonzero pixels
         nonzero = img.nonzero()
         nonzero_y_pixels = np.array(nonzero[0])
         nonzero_x_pixels = np.array(nonzero[1])
 
-        ploty = np.linspace(0, image_height - 1, image_height)
+        current_x_position = starting_point
+        lane_pixels = []
+        for window in range(n_windows):
+            # Calculate image boundries
+            window_y_lower_boundry = image_height - (window + 1) * window_height
+            window_y_upper_boundry = image_height - window * window_height
+            window_x_lower = current_x_position - window_margin
+            window_x_upper = current_x_position + window_margin
+            
+            if CurveCalculator.DEBUG:
+                cv2.rectangle(out_img, (window_x_lower, window_y_lower_boundry),
+                                (window_x_upper, window_y_upper_boundry), (100, 225, 225), 3)
 
-        if mode == "B" or mode == "L":
-            left_starting_point = np.argmax(histogram[:img_middle])
-            current_left_x_position = left_starting_point
-            left_lane_pixels = []
-            for window in range(n_windows):
-                window_y_lower_boundry = image_height - (window + 1) * window_height
-                window_y_upper_boundry = image_height - window * window_height
-                window_x_left_lower = current_left_x_position - window_margin
-                window_x_left_upper = current_left_x_position + window_margin
-                if CurveCalculator.DEBUG:
-                    cv2.rectangle(out_img, (window_x_left_lower, window_y_lower_boundry),
-                                  (window_x_left_upper, window_y_upper_boundry), (100, 225, 225), 3)
+            # get nonzero areas within window
+            non_zero_pixels = ((nonzero_y_pixels >= window_y_lower_boundry) &
+                                    (nonzero_y_pixels < window_y_upper_boundry) &
+                                    (nonzero_x_pixels >= window_x_lower) &
+                                    (nonzero_x_pixels < window_x_upper)
+                                ).nonzero()[0]
 
-                # get nonzero areas within window
-                non_zero_pixels_left = ((nonzero_y_pixels >= window_y_lower_boundry) &
-                                        (nonzero_y_pixels < window_y_upper_boundry) &
-                                        (nonzero_x_pixels >= window_x_left_lower) &
-                                        (nonzero_x_pixels < window_x_left_upper)
-                                        ).nonzero()[0]
+            lane_pixels.append(non_zero_pixels)
 
-                left_lane_pixels.append(non_zero_pixels_left)
-                # Recenter next window
-                # TODO: Mean is probably not the way to go here
-                if len(non_zero_pixels_left) > minpix:
-                    current_left_x_position = np.int(np.mean(nonzero_x_pixels[non_zero_pixels_left]))
+            # Recenter next window (based on mean)
+            if len(non_zero_pixels) > minimum_pixels:
+                current_x_position = np.int(np.mean(nonzero_x_pixels[non_zero_pixels]))
 
-            left_lane_pixels = np.concatenate(left_lane_pixels)
-            # Extract pixel positions
-            left_x_lane_pixels = nonzero_x_pixels[left_lane_pixels]
-            left_y_lane_pixels = nonzero_y_pixels[left_lane_pixels]
+        lane_pixels = np.concatenate(lane_pixels)
+        if len(lane_pixels) < minimum_pixels*(n_windows/2):
+            if left_lane: self.left_fitted_curve = None 
+            if not left_lane: self.right_fitted_curve = None 
+            print("The expected number of pixels was at least 200, but only ", len(lane_pixels), "were found")
+            return
 
-            # Fit second order polinomial
-            left_fit = np.polyfit(left_y_lane_pixels, left_x_lane_pixels, 2)
+        # Extract pixel positions
+        x_lane_pixels = nonzero_x_pixels[lane_pixels]
+        y_lane_pixels = nonzero_y_pixels[lane_pixels]
 
-            # TODO: Maybe do a mean over past 10 polynomials, otherwise remove block
-            self.left[0].append(left_fit[0])
-            self.left[1].append(left_fit[1])
-            self.left[2].append(left_fit[2])
+        # Fit second order polinomial
+        fit = np.polyfit(y_lane_pixels, x_lane_pixels, 2)
 
-            # Generate x and y values for plotting
-            self.left_fitted_curve = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
-
-        if mode == "B" or mode == "R":
-            right_starting_point = np.argmax(histogram[img_middle:]) + img_middle
-            current_right_x_position = right_starting_point
-            right_lane_pixels = []
-            for window in range(n_windows):
-                window_y_lower_boundry = image_height - (window + 1) * window_height
-                window_y_upper_boundry = image_height - window * window_height
-                window_x_right_lower = current_right_x_position - window_margin
-                window_x_right_upper = current_right_x_position + window_margin
-                if CurveCalculator.DEBUG:
-                    cv2.rectangle(out_img, (window_x_right_lower, window_y_lower_boundry),
-                                  (window_x_right_upper, window_y_upper_boundry), (100, 225, 225), 3)
-
-                non_zero_pixels_right = ((nonzero_y_pixels >= window_y_lower_boundry) &
-                                         (nonzero_y_pixels < window_y_upper_boundry) &
-                                         (nonzero_x_pixels >= window_x_right_lower) &
-                                         (nonzero_x_pixels < window_x_right_upper)
-                                         ).nonzero()[0]
-
-                right_lane_pixels.append(non_zero_pixels_right)
-
-                if len(non_zero_pixels_right) > minpix:
-                    current_right_x_position = np.int(np.mean(nonzero_x_pixels[non_zero_pixels_right]))
-                elif CurveCalculator.DEBUG:
-                    print("DEBUG: Not enough non-zero pixels to determine ROI in window ", window)
-
-            right_lane_pixels = np.concatenate(right_lane_pixels)
-            right_x_lane_pixels = nonzero_x_pixels[right_lane_pixels]
-            right_y_lane_pixels = nonzero_y_pixels[right_lane_pixels]
-            right_fit = np.polyfit(right_y_lane_pixels, right_x_lane_pixels, 2)
-
-            self.right[0].append(right_fit[0])
-            self.right[1].append(right_fit[1])
-            self.right[2].append(right_fit[2])
-
-            self.right_fitted_curve = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
-            if len(right_lane_pixels)<200:
-                print("The expected number of pixels was at least 200, but only ", len(right_lane_pixels), "were found")
-                self.right_fitted_curve = None
-                return
+        # For averaging, not implemented
+        # if left_lane:
+        #     for i in range(3):
+        #         self.left[i].pop()
+        #         self.left[i].append(fit[i])
+        # else:
+        #     for i in range(3):
+        #         self.right[i].pop()
+        #         self.right[i].append(fit[i])
 
 
+        # Generate x and y values for plotting
+        if left_lane: self.left_fitted_curve = fit[0] * y_range ** 2 + fit[1] * y_range + fit[2]
+        else: self.right_fitted_curve = fit[0] * y_range ** 2 + fit[1] * y_range + fit[2]
+
+        # Plot lane
         if CurveCalculator.DEBUG:
-            if mode == "L" or mode == "B": out_img[
-                nonzero_y_pixels[left_lane_pixels], nonzero_x_pixels[left_lane_pixels]] = [255, 0, 100]
-            if mode == "R" or mode == "B": out_img[
-                nonzero_y_pixels[right_lane_pixels], nonzero_x_pixels[right_lane_pixels]] = [0, 0, 255]
+            lane_color = [255, 0, 100]
+            if left_lane: lane_color = [0, 0, 255]
 
+            out_img[nonzero_y_pixels[lane_pixels], nonzero_x_pixels[lane_pixels]] = lane_color
+        
             cv2.imshow("out", out_img)
             cv2.waitKey(0)
 
@@ -148,36 +130,28 @@ class CurveCalculator(object):
         lower_half_img = img[img.shape[0] // 2:, :]
         return np.sum(lower_half_img, axis=0)
 
-    def fit_polynom_to_lane(self, starting_poinnt):
-        pass
-
     def fit_curve_worldspace(self, img, mode="B"):
 
         left_curve_radius = None
         right_curve_radius = None
-        if (mode == "B" or mode == "L") and self.left_fitted_curve is not None:
+        if self.left_fitted_curve is not None:
             left_curve_radius, current_left_x = self.get_curve_radius(img, self.left_fitted_curve)
-        elif mode == "B" and self.left_fitted_curve is None:
-            mode == "R"
-        elif mode == "L":
-            print("Mode was ", mode, ", however no left curve was found")
-            return (None, None, None)
-
-        if (mode == "B" or mode == "R") and self.right_fitted_curve is not None:
+        if self.right_fitted_curve is not None:
             right_curve_radius, current_right_x = self.get_curve_radius(img, self.right_fitted_curve)
-        elif mode == "B" and self.right_fitted_curve is None:
-            mode == "L"
-        elif mode == "R":
-            print("Mode was ", mode, ", however no right curve was found")
-            return (None, None, None)
 
-        car_position = img.shape[1] / 2  # car assumed to be in the middle of image
-        distance = None
-        if mode == "B": distance = (car_position-(current_right_x + current_left_x)/2) * self.meters_per_pixel_x / 10
-        if mode == "R": distance = (car_position-current_right_x) * self.meters_per_pixel_x / 10
-        if mode == "L": distance = (car_position - current_left_x) * self.meters_per_pixel_x / 10
+        bycicle_position = img.shape[1] / 2  # assumed to be in the middle of image
+        offset = None
+        if mode == "B":
+            if right_curve_radius is not None and left_curve_radius is not None:
+                offset = (bycicle_position-(current_right_x + current_left_x)/2) * self.meters_per_pixel_x / 10
+        if mode == "R":
+            if right_curve_radius is not None:
+                offset = (bycicle_position-current_right_x) * self.meters_per_pixel_x / 10
 
-        return (left_curve_radius, right_curve_radius, distance)
+        if CurveCalculator.DEBUG:
+            print("Calculated Curve in Worldspace for mode", mode, "is:", (left_curve_radius, right_curve_radius, offset))
+
+        return (left_curve_radius, right_curve_radius, offset)
 
     def get_curve_radius(self, img, x_points):
         img_height: int = img.shape[0]
@@ -199,24 +173,6 @@ class CurveCalculator(object):
         points = np.hstack((left, right))
 
         cv2.fillPoly(color_img, np.int_(points), (0, 200, 255))
-        inv_perspective = self.inv_perspective_warp(color_img, dst_size=(img.shape[1], img.shape[0]))
+        inv_perspective = ImageWarper().inv_perspective_warp(color_img, dst_size=(img.shape[1], img.shape[0]))
         inv_perspective = cv2.addWeighted(img, 1, inv_perspective, 0.7, 0)
         return inv_perspective
-
-    # TODO: DOES NOT BELONG HERE
-    def inv_perspective_warp(self, img,
-                             dst_size=(1280, 720),
-                             # dst_size=(608, 800),
-                             src=np.float32([(0, 0), (1, 0), (0, 1), (1, 1)]),
-                             dst=np.float32([(0.43, 0.65), (0.58, 0.65), (0.1, 1), (1, 1)])):
-        img_size = np.float32([(img.shape[1], img.shape[0])])
-        src = src * img_size
-        # For destination points, I'm arbitrarily choosing some points to be
-        # a nice fit for displaying our warped result
-        # again, not exact, but close enough for our purposes
-        dst = dst * np.float32(dst_size)
-        # Given src and dst points, calculate the perspective transform matrix
-        M = cv2.getPerspectiveTransform(src, dst)
-        # Warp the image using OpenCV warpPerspective()
-        warped = cv2.warpPerspective(img, M, dst_size)
-        return warped
