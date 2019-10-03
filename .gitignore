@@ -19,3 +19,4 @@ slprj/
 *.original
 *.slxc
 *.mexw64
+target_trajectory.txt

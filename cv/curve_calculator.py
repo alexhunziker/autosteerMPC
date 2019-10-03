@@ -24,18 +24,18 @@ class CurveCalculator(object):
         self.left = [[], [], []]
         self.right = [[], [], []]
 
-        self.right_fitted_curve: List[float] = [0.0]
-        self.left_fitted_curve: List[float] = [0.0]
+        self.right_fitted_curve: List[float] = None
+        self.left_fitted_curve: List[float] = None
 
         self.meters_per_pixel_x = meters_per_pixel_x
         self.meters_per_pixel_y = meters_per_pixel_y
 
     def recognize_curve(self, img, n_windows=9, window_margin=150,
-                       minpix=1, draw_windows=True, mode="B"):
+                       minpix=1, draw_windows=True):
         if self.mode == "B" or self.mode == "L":
-            pass
+            self.sliding_window(img, True, n_windows, window_margin, minpix, draw_windows)
         if self.mode == "B" or self.mode == "R":
-            pass
+            self.sliding_window(img, False, n_windows, window_margin, minpix, draw_windows)
 
     def sliding_window(self, img, left_lane, n_windows=9, window_margin=150,
                         minimum_pixels=1, draw_windows=True):
@@ -54,7 +54,7 @@ class CurveCalculator(object):
         if left_lane:
             starting_point = np.argmax(histogram[:img_middle])
         else:
-            starting_point = np.argmax(histogram[img_middle:])
+            starting_point = np.argmax(histogram[img_middle:]) + img_middle
 
         # Identify x and y positions of nonzero pixels
         nonzero = img.nonzero()
@@ -168,11 +168,19 @@ class CurveCalculator(object):
         ploty = np.linspace(0, img.shape[0] - 1, img.shape[0])
         color_img = np.zeros_like(img)
 
-        left = np.array([np.transpose(np.vstack([self.left_fitted_curve, ploty]))])
-        right = np.array([np.flipud(np.transpose(np.vstack([self.right_fitted_curve, ploty])))])
-        points = np.hstack((left, right))
+        left = None
+        right = None
+        if self.left_fitted_curve is not None:
+            left = np.int_(np.array([np.transpose(np.vstack([self.left_fitted_curve, ploty]))]))
+            color_img[np.int_(ploty), np.int_(self.left_fitted_curve)] = [225, 0, 0]
+        if self.right_fitted_curve is not None:
+            right = np.int_(np.array([np.flipud(np.transpose(np.vstack([self.right_fitted_curve, ploty])))]))
+            color_img[np.int_(ploty), np.int_(self.right_fitted_curve)] = [0, 225, 0]
+       
+        if left is not None and right is not None:
+            points = np.hstack((left, right))
+            cv2.fillPoly(color_img, np.int_(points), (0, 200, 255))
 
-        cv2.fillPoly(color_img, np.int_(points), (0, 200, 255))
         inv_perspective = ImageWarper().inv_perspective_warp(color_img, dst_size=(img.shape[1], img.shape[0]))
         inv_perspective = cv2.addWeighted(img, 1, inv_perspective, 0.7, 0)
         return inv_perspective
