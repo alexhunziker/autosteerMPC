@@ -9,7 +9,7 @@ using namespace dlib;
 
 #define PI 3.14159265
 
-static double TARGET_YAW = -0.5;
+static double TARGET_YAW = 0.7;
 static double TARGET_X = 10;
 static double TARGET_Y = 10;
 static double TARGET_SPEED = 4;
@@ -20,7 +20,7 @@ double x_calc = 0.0;
 double y_calc = 0.0;
 double yaw_calc = 0.0;
 double sanitized_yaw = 0.0;
-double offset = 4;
+double offset = 2;
 
 double get_y_offset(double v, double target_yaw_rate, double actual_yaw_rate)
 {
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     double state[NR_OF_STATES] = {0, 0, 0, 0, 0, 2};
     double position[3];
 
-    for (int i = 1; i < 1000; i++)
+    for (int i = 1; i < 100; i++)
     {
         calc_position(state[1], state[2], state[5]);
         predict(get_target_speed(), x_calc, y_calc, state[5], get_y_offset(state[5], TARGET_YAW, state[2]), state[1], state[2], state[3], TARGET_YAW, controls, state);

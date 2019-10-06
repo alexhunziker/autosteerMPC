@@ -12,12 +12,12 @@ using namespace dlib;
 const bool DEBUG = true;
 
 // Constants for Model
-const int CONTROL_HORIZON = 40;
+const int CONTROL_HORIZON = 30;
 const float STEP_SIZE = 0.1;
 // Contrary to MATLAB, dlib does not allow different control/prediction horizons
 const int PREDICTION_HORIZON = CONTROL_HORIZON;
 
-const float CRUISING_SPEED = -4.0;
+const float CRUISING_SPEED = 4.0;
 
 mpc<NR_OF_STATES, NR_OF_CONTROLS, PREDICTION_HORIZON> mpc_objects[3];
 
