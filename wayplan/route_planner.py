@@ -29,8 +29,8 @@ class RoutePlanner(object):
             new_open = set(children) - set(open_edges)
             open_edges = open_edges + list(new_open)
 
-        print(potential_solution.way_to_here)
-        print("Reachable in:", potential_solution.reachable_in)
+        print("DEBUG: Found path:", potential_solution.way_to_here)
+        print("INFO: Destination Reachable in:", potential_solution.reachable_in)
         ResultWriter('../target_trajectory.txt').write(potential_solution.way_to_here)
         return potential_solution.way_to_here
 
@@ -50,5 +50,5 @@ class RoutePlanner(object):
                 start_edges.append(edge)
         return start_edges
 
-
-RoutePlanner().calculate("0x1d", "0x1b0")
+if __name__ == "__main__":
+    RoutePlanner().calculate("0x1d", "0x1b0")

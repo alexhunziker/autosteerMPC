@@ -4,7 +4,7 @@ import traceback
 
 import cv2
 
-from .second_order_edge_recognizer import SecondOrderEdgerecognizer
+from .second_order_edge_recognizer import SecondOrderEdgeRecognizer
 
 
 class LaneRecognizer(object):
@@ -17,7 +17,7 @@ class LaneRecognizer(object):
         self.lateral_deviation = None
         self.last_valid = None
         self.stop = False
-        self.second_order_recognizer = SecondOrderEdgerecognizer(destination_size=LaneRecognizer.RESOLUTION,
+        self.second_order_recognizer = SecondOrderEdgeRecognizer(destination_size=LaneRecognizer.RESOLUTION,
                                                                  debug=self.debug)
         measure_thread = threading.Thread(target=self.measure_loop)
         measure_thread.start()

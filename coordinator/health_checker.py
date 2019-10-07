@@ -18,6 +18,7 @@ class HealthChecker(object):
     def __init__(self, verbose = False):
         self.verbose = verbose
         GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
         GPIO.setup(HealthChecker.GPIO_GREEN, GPIO.OUT)
         GPIO.setup(HealthChecker.GPIO_RED, GPIO.OUT)
         GPIO.setup(HealthChecker.GPIO_BLLUE, GPIO.OUT)
@@ -77,7 +78,8 @@ class HealthChecker(object):
             time.sleep(0.05)
             GPIO.output(HealthChecker.GPIO_GREEN, GPIO.LOW)
 
-if __name__ == "__main__":
+test_flag = False
+if __name__ == "__main__" and test_flag:
     healthChecker = HealthChecker(verbose=True)
     healthChecker.double_flash()
     time.sleep(1)

@@ -14,7 +14,6 @@ class Coordinator(object):
     def __init__(self):
         self.health_checker = HealthChecker()
         self.health_checker.double_flash()
-
         self.path_manager = PathManager()
         self.sensor_fuser = SensorFuser()
         self.mpc_bridge = MPCBridge()
@@ -34,13 +33,20 @@ class Coordinator(object):
 
     def main_loop(self):
         while self.active:
+            loop_start = time.time()
             parameters = self.sensor_fuser.retrieve_updates()
             self.path_manager.potentially_update_next(parameters.gps)
             parameters.next_target = self.path_manager.get_next()
             self.health_checker.check(parameters)
             impulses = self.mpc_bridge.request_step(parameters)
             self.actuator_bridge.send(impulses)
-            time.sleep(Coordinator.STEP_TIME)
+
+            sleep_time = Coordinator.STEP_TIME - (time.time() - loop_start)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+                print("DEBUG: Main loop took", 0.1 - sleep_time)
+            else:
+                print("WARN: Main loop took too long to process: ", 0.1 - sleep_time)
         self.sensor_fuser.stop()
 
 
