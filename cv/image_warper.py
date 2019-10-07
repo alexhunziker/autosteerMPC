@@ -37,7 +37,7 @@ class ImageWarper(object):
         src = src * img_size
         dst = dst * np.float32(dst_size)
         # calculate the perspective transform matrix
-        M = cv2.getPerspectiveTransform(src, dst)
+        M = cv2.getPerspectiveTransform(np.float32(src), np.float32(dst))
         # Warp
         warped = cv2.warpPerspective(img, M, dst_size)
         return warped

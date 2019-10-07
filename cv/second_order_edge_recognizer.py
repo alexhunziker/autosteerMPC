@@ -48,10 +48,10 @@ class SecondOrderEdgeRecognizer(object):
         lane_curve = curverad[1]
 
         font = cv2.FONT_HERSHEY_SIMPLEX
-        fontColor = (0, 0, 0)
-        fontSize = 0.5
-        cv2.putText(lanes, 'Lane Curvature: {:.0f} m'.format(lane_curve), (570, 620), font, fontSize, fontColor, 2)
-        cv2.putText(lanes, 'Vehicle offset: {:.4f} m'.format(curverad[2]), (570, 650), font, fontSize, fontColor, 2)
+        fontColor = (0, 0, 255)
+        fontSize = 1
+        cv2.putText(lanes, 'Lane Curvature: {:.0f} m'.format(lane_curve), (100, 400), font, fontSize, fontColor, 2)
+        cv2.putText(lanes, 'Vehicle offset: {:.4f} m'.format(curverad[2]), (100, 450), font, fontSize, fontColor, 2)
         return lanes
 
 
@@ -62,6 +62,7 @@ if __name__ == "__main__":
     for i in range(10):
         print("Processing result:", secondOrderEdgeRecognizer.process(img))
     curverad = secondOrderEdgeRecognizer.get_curve_radius()
+    print(curverad)
     result_img = secondOrderEdgeRecognizer.visualize_lane()
     plt.imshow(result_img, cmap="hsv")
     plt.show()

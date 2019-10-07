@@ -172,15 +172,16 @@ class CurveCalculator(object):
         right = None
         if self.left_fitted_curve is not None:
             left = np.int_(np.array([np.transpose(np.vstack([self.left_fitted_curve, ploty]))]))
-            color_img[np.int_(ploty), np.int_(self.left_fitted_curve)] = [225, 0, 0]
+            cv2.polylines(color_img, np.int_(left), False, (255, 0, 0), 20);
         if self.right_fitted_curve is not None:
             right = np.int_(np.array([np.flipud(np.transpose(np.vstack([self.right_fitted_curve, ploty])))]))
-            color_img[np.int_(ploty), np.int_(self.right_fitted_curve)] = [0, 225, 0]
+            cv2.polylines(color_img, np.int_(right), False, (0, 225, 0), 20);
        
         if left is not None and right is not None:
             points = np.hstack((left, right))
             cv2.fillPoly(color_img, np.int_(points), (0, 200, 255))
 
-        inv_perspective = ImageWarper().inv_perspective_warp(color_img, dst_size=(img.shape[1], img.shape[0]))
+        inv_perspective = ImageWarper().inv_perspective_warp(color_img, dst_size=(img.shape[1], img.shape[0]),
+                                                             dst=[(0.3, 0.3), (0.48, 0.3), (0, 1), (1, 1)])
         inv_perspective = cv2.addWeighted(img, 1, inv_perspective, 0.7, 0)
         return inv_perspective
