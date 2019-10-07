@@ -18,11 +18,6 @@ class ImageWarper(object):
              ):
         """
         Warps an image according to the specified ROIs (if any)
-        :param img: Binary image to be processed
-        :param destination_size: size of output image
-        :param source_roi_proportion
-        :param destination_roi_proportion
-        :return: warped image
         """
         source_size = np.float32([(img.shape[1], img.shape[0])])
         source_roi = source_roi_proportion * source_size

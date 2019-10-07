@@ -29,11 +29,6 @@ class ImagePreprocessor(object):
         combined_binary = self.combine_binaries(sobel_x_binary, saturation_binary)
 
         return combined_binary
-        # self.plot_warp_result(img, combined_binary)
-        # warped_img = ImageWarper.warp(combined_binary)
-
-        # self.plot_warp_result(img, warped_img)
-        # lane = 0
 
     @classmethod
     def convert_to_hls(cls, img):
@@ -88,5 +83,6 @@ class ImagePreprocessor(object):
         ax2.set_title('Warped Image', fontsize=30)
         plt.show()
 
-# img = cv2.imread('resources/curve_1.jpg')
-# CurvedLaneRecognizer().process(img)
+if __name__ == "__main__":
+    img = cv2.imread('resources/curve_1.jpg')
+    ImagePreprocessor().process(img)

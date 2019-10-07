@@ -34,8 +34,9 @@ class SecondOrderEdgeRecognizer(object):
         self.img = img
         curverad = self.get_curve_radius()
         lane_curvature = curverad[1]
-        print("INFO: Curvature (m):", lane_curvature, "vehicle offset (m):", curverad[2])
-        print("INFO: Image processed in ", time.time() - start_time, "s")
+        if self.debug:
+            print("INFO: Curvature (m):", lane_curvature, "vehicle offset (m):", curverad[2])
+            print("INFO: Image processed in ", time.time() - start_time, "s")
         return lane_curvature, curverad[2]
 
     def get_curve_radius(self):
