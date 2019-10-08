@@ -7,6 +7,16 @@ from parameters import Parameters
 class MPCBridge(object):
     MPC_SHARED_OBJECT_LOCATION = "../mpc_dlib/build/libmpc_controller.so"
 
+    MPC_SO_CV_UNCONSTR = "../mpc_implementation/build/libmpc_cv_unconstr.so"
+    MPC_SO_CV_UNCONSTR = "../mpc_implementation/build/libmpc_cv_obst.so"
+    MPC_SO_CV_UNCONSTR = "../mpc_implementation/build/libmpc_cv_unconstr.so"
+    MPC_SO_CV_UNCONSTR = "../mpc_implementation/build/libmpc_gps_obst.so"
+
+    LAT_FACTOR = 70_000
+    LON_FACTOR = 111_000
+    LAT_OFFSET = 50.128798
+    LON_OFFSET = 8.667482
+
     def __init__(self, silent=False):
         self.silent = silent
 
@@ -14,14 +24,26 @@ class MPCBridge(object):
         self.mpc_controller.initialize_mpc_objects()
         self.last_controls = Impulses(0, 0, 0)
 
+    @classmethod
+    def lat_transform(cls, x):
+        return (x-cls.LAT_OFFSET)*cls.LAT_FACTOR
+
+    @classmethod
+    def lon_transform(cls, x):
+        return (x-cls.LON_OFFSET)*cls.LON_FACTOR
+
     def request_step(self, parameters):
+        x_target = MPCBridge.lat_transform(parameters.next_target[0])
+        y_target = MPCBridge.lon_transform(parameters.next_target[1])
+        x_current = MPCBridge.lat_transform(parameters.gps["lat"])
+        y_current = MPCBridge.lon_transform(parameters.gps["lon"])
         mpc_controls_receiver = (ctypes.c_double * 3)()
-        self.mpc_controller.predict(ctypes.c_double(parameters.next_target[0]),
-                                    ctypes.c_double(parameters.next_target[1]),
+        self.mpc_controller.predict(ctypes.c_double(x_target),
+                                    ctypes.c_double(y_target),
                                     ctypes.c_double(self.last_controls.steering),
                                     ctypes.c_double(self.last_controls.throttle),
                                     ctypes.c_double(self.last_controls.breaks),
-                                    ctypes.c_double(parameters.gps["lat"]), ctypes.c_double(parameters.gps["lon"]),
+                                    ctypes.c_double(x_current), ctypes.c_double(y_current),
                                     ctypes.c_double(parameters.gps["speed"]), mpc_controls_receiver
                                     )
         planned_impulses = list(mpc_controls_receiver)
