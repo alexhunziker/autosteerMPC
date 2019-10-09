@@ -36,7 +36,7 @@ extern "C"
             mpc_objects[i] = mpc_object;
         }
         if (DEBUG)
-            printf("DEBUG: MPC Objects set up for GPS Obstacle.\n");
+            printf("DEBUG: MPC Objects set up for GPS Unconstrained.\n");
     }
 
     void predict(
@@ -111,5 +111,7 @@ mpc<NR_OF_STATES, NR_OF_CONTROLS, PREDICTION_HORIZON> initialize_mpc_object(int 
 mpc<NR_OF_STATES, NR_OF_CONTROLS, PREDICTION_HORIZON> get_best_mpc_object(int speed)
 {
     int i = max(int(speed) - 2, 0);
+    if (DEBUG)
+        cout << "DEBUG: MPC GPS unconstr used with parameters idx " << i << "\n";
     return mpc_objects[i];
 }

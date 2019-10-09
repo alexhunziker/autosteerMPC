@@ -8,7 +8,7 @@ from parameters import Parameters
 class MPCBridge(object):
     MPC_SO_CV_UNCONSTR = "../mpc_implementation/build/libmpc_cv_unconstr.so"
     MPC_SO_CV_OBST = "../mpc_implementation/build/libmpc_cv_obst.so"
-    MPC_SO_GPS_UNCONSTR = "../mpc_implementation/build/libmpc_cv_unconstr.so"
+    MPC_SO_GPS_UNCONSTR = "../mpc_implementation/build/libmpc_gps_unconstr.so"
     MPC_SO_GPS_OBST = "../mpc_implementation/build/libmpc_gps_obst.so"
 
     LAT_FACTOR = 70_000 # TODO: Better Approximation 
@@ -18,9 +18,10 @@ class MPCBridge(object):
 
     CRUISING_VELOCITY = 4.0
 
-    def __init__(self, silent=False, simulation_mode=False):
+    def __init__(self, silent=False, simulation_mode=False, debug=False):
         self.silent = silent
         self.simulation_mode = simulation_mode
+        self.debug = debug
 
         self.mpc_cv_unconstr = ctypes.CDLL(MPCBridge.MPC_SO_CV_UNCONSTR)
         self.mpc_cv_unconstr.initialize_mpc_objects()
@@ -44,6 +45,7 @@ class MPCBridge(object):
 
     @classmethod
     def calculate_time_to_collision(cls, distance, speed):
+        if speed<0.1: speed = 0.1
         return distance/speed if distance>1.0 else 0
 
     @classmethod
@@ -82,7 +84,7 @@ class MPCBridge(object):
         y_current = MPCBridge.lon_transform(parameters.gps["lon"])
         v_target = None
         cv_available = False
-        if parameters.lane_curvature > 0:
+        if parameters.lane_curvature is not None:
             yaw_rate_target = MPCBridge.calculate_yaw_rate_target(parameters.gps["speed"], parameters.lane_curvature)
             cv_available = True
         else:
@@ -90,7 +92,7 @@ class MPCBridge(object):
             v_target = MPCBridge.calculate_target_speed(x_target, y_target, x_current, y_current, abs(yaw_target - parameters.gps["yaw"]))
 
         impulses = None
-        if time_to_collision < 3 and cv_available: impulses = self.step_cv_obst()
+        if time_to_collision < 3 and cv_available: impulses = self.step_cv_obst(parameters, x_current, y_current, v_target, yaw_rate_target, time_to_collision)
         elif time_to_collision < 3: impulses = self.step_gps_obst(parameters, x_current, y_current, v_target, yaw_target, time_to_collision)
         elif cv_available: impulses = self.step_cv_unconstr(parameters, x_current, y_current, v_target, yaw_rate_target)
         else: impulses = self.step_gps_unconstr(parameters, x_current, y_current, v_target, yaw_target)
@@ -102,6 +104,8 @@ class MPCBridge(object):
         return self.last_controls
 
     def step_gps_unconstr(self, parameters, x_current, y_current, v_target, yaw_target):
+        if self.debug:
+            print("GPS Model w/o obstacle will be applied.")
         mpc_controls_receiver = (ctypes.c_double * 3)()
         mpc_state_receiver = (ctypes.c_double * 4)()
         self.mpc_gps_unconstr.predict(
@@ -113,12 +117,14 @@ class MPCBridge(object):
             ctypes.c_double(parameters.gps["yaw_rate"]),
             ctypes.c_double(self.schwimm),
             ctypes.c_double(yaw_target),
-            mpc_state_receiver,
-            mpc_controls_receiver
+            mpc_controls_receiver,
+            mpc_state_receiver
         )
         return mpc_controls_receiver
 
     def step_gps_obst(self, parameters, x_current, y_current, v_target, yaw_target, time_to_collision):
+        if self.debug:
+            print("GPS Model with obstacle will be applied.")
         mpc_controls_receiver = (ctypes.c_double * 3)()
         mpc_state_receiver = (ctypes.c_double * 5)()
         self.mpc_gps_obst.predict(
@@ -130,12 +136,14 @@ class MPCBridge(object):
             ctypes.c_double(parameters.gps["yaw_rate"]),
             ctypes.c_double(self.schwimm),
             ctypes.c_double(yaw_target),
-            mpc_state_receiver,
-            mpc_controls_receiver
+            mpc_controls_receiver,
+            mpc_state_receiver
         )
         return mpc_controls_receiver
 
     def step_cv_unconstr(self, parameters, x_current, y_current, v_target, yaw_rate_target):
+        if self.debug:
+            print("CV Model w/o obstacle will be applied.")
         mpc_controls_receiver = (ctypes.c_double * 4)()
         mpc_state_receiver = (ctypes.c_double * 6)()
         self.mpc_cv_unconstr.predict(
@@ -148,12 +156,14 @@ class MPCBridge(object):
             ctypes.c_double(parameters.gps["yaw_rate"]),
             ctypes.c_double(self.schwimm),
             ctypes.c_double(yaw_rate_target),
-            mpc_state_receiver,
-            mpc_controls_receiver
+            mpc_controls_receiver,
+            mpc_state_receiver
         )
         return mpc_controls_receiver
 
     def step_cv_obst(self, parameters, x_current, y_current, v_target, yaw_rate_target, time_to_collision):
+        if self.debug:
+            print("CV Model with obstacle will be applied.")
         mpc_controls_receiver = (ctypes.c_double * 4)()
         mpc_state_receiver = (ctypes.c_double * 7)()
         self.mpc_cv_obst.predict(
@@ -167,8 +177,8 @@ class MPCBridge(object):
             ctypes.c_double(self.schwimm),
             ctypes.c_double(yaw_rate_target),
             ctypes.c_double(time_to_collision),
-            mpc_state_receiver,
-            mpc_controls_receiver
+            mpc_controls_receiver,
+            mpc_state_receiver
         )
         return mpc_controls_receiver
 
@@ -185,7 +195,10 @@ class MPCBridge(object):
 
 if __name__ == "__main__":
     parameters = Parameters()
+    parameters.next_target = [10, -10]
     parameters.gps["lat"] = 0
     parameters.gps["lon"] = 0
     parameters.gps["speed"] = 3.9
-    MPCBridge().request_step(parameters)
+    parameters.gps["yaw"] = 0.2
+    parameters.gps["yaw_rate"] = 0.2
+    MPCBridge(debug=True).request_step(parameters)

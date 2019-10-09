@@ -23,7 +23,7 @@ CONTROLS:
 
 Linearization for sample time 0.1s
 
-Corresponding MATLAB/SIMULINK Model: mpc_gps_obst
+Corresponding MATLAB/SIMULINK Model: mpc_gps_unconstr
 */
 
 void init_ss()
