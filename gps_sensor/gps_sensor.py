@@ -23,9 +23,10 @@ class GPSSensor(object):
                 "lat": gpsd.fix.latitude,
                 "lon": gpsd.fix.longitude,
                 "altitude": gpsd.fix.altitude,
-                "speed": gpsd.fix.speed
+                "speed": gpsd.fix.speed,
+                "track": gpsd.fix.track
             }
-            if self.gps["lat"] > 0:
+            if gps_received["lat"] > 0:
                 self.gps = gps_received
                 self.last_valid = time.time()
             if self.verbose:
