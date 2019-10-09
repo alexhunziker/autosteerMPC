@@ -22,11 +22,14 @@ set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -latomic")
 add_subdirectory(../dlib dlib_build)
 
 # Executable for testing: add all files to the targets, and tell cmake to use dlib
-ADD_EXECUTABLE(${target_name} mpc_cv_unconstr_test.cpp)
-TARGET_LINK_LIBRARIES(${target_name} dlib::dlib )
+ADD_EXECUTABLE(mpc_cv_unconstr_test mpc_cv_unconstr_test.cpp)
+TARGET_LINK_LIBRARIES(mpc_cv_unconstr_test dlib::dlib )
 
 ADD_EXECUTABLE(mpc_cv_obst_test mpc_cv_obst_test.cpp)
 TARGET_LINK_LIBRARIES(mpc_cv_obst_test dlib::dlib )
+
+ADD_EXECUTABLE(mpc_gps_obst_test mpc_gps_obst_test.cpp)
+TARGET_LINK_LIBRARIES(mpc_gps_obst_test dlib::dlib )
 
 # Shared Object for actual implementation: add all files to the targets, and tell cmake to use dlib
 add_library(mpc_cv_unconstr SHARED mpc_cv_unconstr.cpp)
@@ -34,3 +37,6 @@ TARGET_LINK_LIBRARIES(mpc_cv_unconstr dlib::dlib )
 
 add_library(mpc_cv_obst SHARED mpc_cv_obst.cpp)
 TARGET_LINK_LIBRARIES(mpc_cv_obst dlib::dlib )
+
+add_library(mpc_gps_obst SHARED mpc_gps_obst.cpp)
+TARGET_LINK_LIBRARIES(mpc_gps_obst dlib::dlib )
