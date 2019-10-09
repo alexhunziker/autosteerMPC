@@ -84,21 +84,24 @@ class MPCBridge(object):
         y_current = MPCBridge.lon_transform(parameters.gps["lon"])
         v_target = None
         cv_available = False
+        gps_available = False
         if parameters.lane_curvature is not None:
             yaw_rate_target = MPCBridge.calculate_yaw_rate_target(parameters.gps["speed"], parameters.lane_curvature)
             cv_available = True
-        else:
+        elif parameters.gps["lat"] > 0:
+            gps_available = True
             yaw_target = MPCBridge.calculate_target_yaw(x_target, y_target, x_current, y_current, parameters.gps["yaw"])
             v_target = MPCBridge.calculate_target_speed(x_target, y_target, x_current, y_current, abs(yaw_target - parameters.gps["yaw"]))
 
         impulses = None
-        if time_to_collision < 3 and cv_available: impulses = self.step_cv_obst(parameters, x_current, y_current, v_target, yaw_rate_target, time_to_collision)
-        elif time_to_collision < 3: impulses = self.step_gps_obst(parameters, x_current, y_current, v_target, yaw_target, time_to_collision)
-        elif cv_available: impulses = self.step_cv_unconstr(parameters, x_current, y_current, v_target, yaw_rate_target)
-        else: impulses = self.step_gps_unconstr(parameters, x_current, y_current, v_target, yaw_target)
+        if time_to_collision < 3 and cv_available: self.step_cv_obst(parameters, x_current, y_current, v_target, yaw_rate_target, time_to_collision)
+        elif time_to_collision < 3 and gps_available: self.step_gps_obst(parameters, x_current, y_current, v_target, yaw_target, time_to_collision)
+        elif cv_available: self.step_cv_unconstr(parameters, x_current, y_current, v_target, yaw_rate_target)
+        elif gps_available: self.step_gps_unconstr(parameters, x_current, y_current, v_target, yaw_target)
+        else: 
+            print("WARN: Neither GPS nor CV available. Emergency Break.")
+            self.last_controls = Impulses(0, 0, 1)
 
-        planned_impulses = list(impulses)
-        self.last_controls = Impulses(planned_impulses[0], planned_impulses[1], planned_impulses[2])
         if (self.emergency_break_condition(parameters)):
             return self.apply_emergency_break(self.last_controls)
         return self.last_controls
@@ -120,11 +123,12 @@ class MPCBridge(object):
             mpc_controls_receiver,
             mpc_state_receiver
         )
-        return mpc_controls_receiver
+        planned_impulses = list(mpc_controls_receiver)
+        self.last_controls = Impulses(planned_impulses[0], planned_impulses[1], planned_impulses[2])
 
     def step_gps_obst(self, parameters, x_current, y_current, v_target, yaw_target, time_to_collision):
         if self.debug:
-            print("GPS Model with obstacle will be applied.")
+            print("DEBUG: GPS Model with obstacle will be applied.")
         mpc_controls_receiver = (ctypes.c_double * 3)()
         mpc_state_receiver = (ctypes.c_double * 5)()
         self.mpc_gps_obst.predict(
@@ -139,11 +143,12 @@ class MPCBridge(object):
             mpc_controls_receiver,
             mpc_state_receiver
         )
-        return mpc_controls_receiver
+        planned_impulses = list(mpc_controls_receiver)
+        self.last_controls = Impulses(planned_impulses[0], planned_impulses[1], planned_impulses[2])
 
     def step_cv_unconstr(self, parameters, x_current, y_current, v_target, yaw_rate_target):
         if self.debug:
-            print("CV Model w/o obstacle will be applied.")
+            print("DEBUG: CV Model w/o obstacle will be applied.")
         mpc_controls_receiver = (ctypes.c_double * 4)()
         mpc_state_receiver = (ctypes.c_double * 6)()
         self.mpc_cv_unconstr.predict(
@@ -159,11 +164,12 @@ class MPCBridge(object):
             mpc_controls_receiver,
             mpc_state_receiver
         )
-        return mpc_controls_receiver
+        planned_impulses = list(mpc_controls_receiver)
+        self.last_controls = Impulses(planned_impulses[0], planned_impulses[2], planned_impulses[3])
 
     def step_cv_obst(self, parameters, x_current, y_current, v_target, yaw_rate_target, time_to_collision):
         if self.debug:
-            print("CV Model with obstacle will be applied.")
+            print("DEBUG: CV Model with obstacle will be applied.")
         mpc_controls_receiver = (ctypes.c_double * 4)()
         mpc_state_receiver = (ctypes.c_double * 7)()
         self.mpc_cv_obst.predict(
@@ -180,7 +186,8 @@ class MPCBridge(object):
             mpc_controls_receiver,
             mpc_state_receiver
         )
-        return mpc_controls_receiver
+        planned_impulses = list(mpc_controls_receiver)
+        self.last_controls = Impulses(planned_impulses[0], planned_impulses[2], planned_impulses[3])
 
     def emergency_break_condition(self, parameters):
         return (parameters.distance < 400) and (parameters.distance < 2 * parameters.speed)
