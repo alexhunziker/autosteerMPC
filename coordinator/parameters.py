@@ -20,7 +20,7 @@ class Parameters(object):
         self.yaw_target = 0
         self.yaw_target_timestamp = None
 
-        self.speed = 0
+        self.speed = 0.0
         self.speed_timestamp = None
 
     def update_target_yaw(self):
