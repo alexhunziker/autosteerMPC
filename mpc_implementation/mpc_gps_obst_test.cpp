@@ -9,8 +9,8 @@ using namespace dlib;
 
 #define PI 3.14159265
 
-static double TARGET_X = 10;
-static double TARGET_Y = 10;
+static double TARGET_X = -10;
+static double TARGET_Y = -10;
 static double TARGET_SPEED = 4;
 static double TIME_STEP = 0.1;
 
@@ -18,7 +18,7 @@ double x_calc = 0.0;
 double y_calc = 0.0;
 double yaw_calc = 0.0;
 double sanitized_yaw = 0.0;
-double distance_to_collision = 6.0;
+double distance_to_collision = 10.0;
 
 double sign(double x)
 {
@@ -58,7 +58,7 @@ double calculate_yaw_target(double yaw)
 
     // Adjust so we actually take shortest diff
     double yaw_diff = abs(yaw - yaw_target);
-    if (yaw_diff < PI)
+    if (yaw_diff > PI)
     {
         if (yaw_target < 0 && yaw > 0)
             yaw_target = yaw_target + 2 * PI;
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
     for (int i = 1; i < 100; i++)
     {
         double v = sanitize_velocity(state[3]);
-        calc_position(state[1], state[2], v);
+        calc_position(state[0], state[1], v);
         double target_yaw = calculate_yaw_target(sanitized_yaw);
         predict(get_target_speed(target_yaw), x_calc, y_calc, v, state[0], state[1], state[2], target_yaw, get_collision_distance(v), controls, state);
         cout << "Predicted state is: ";
