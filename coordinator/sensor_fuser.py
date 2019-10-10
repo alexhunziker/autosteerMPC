@@ -2,6 +2,7 @@ import ctypes
 import sys
 import time
 import threading
+import multiprocessing
 sys.path.append('../')
 
 from gps_sensor.gps_sensor import GPSSensor
@@ -9,6 +10,7 @@ from ultrasonic.ultrasonic_sensor import UltrasonicSensor
 from cv.lane_recognizer import LaneRecognizer
 from camera.camera import Camera
 from parameters import Parameters
+from cv_process import CVProcess
 
 class SensorFuser(object):
     LIDAR_CUTOFF = 2.0
@@ -17,8 +19,10 @@ class SensorFuser(object):
         self.verbose = verbose
         self.ultrasonic = UltrasonicSensor(verbose=False)
         self.gps = GPSSensor(verbose=True)
-        self.camera = Camera(verbose=True)
-        self.lane_recognizer = LaneRecognizer(self.camera)
+        #self.camera = Camera(verbose=True)
+        #self.lane_recognizer = LaneRecognizer(self.camera)
+        self.cv_results = multiprocessing.Array("f", [0, 1])
+        self.cv_worker = CVProcess(self.cv_results)
 
         self.lidar = ctypes.CDLL("../lidar/build/liblidar_sensor.so")
         self.lidar.getDistanceForAngle.argtypes = ([ctypes.c_double])
@@ -41,8 +45,12 @@ class SensorFuser(object):
         parameters.gps = self.gps.retrieve_state()
         parameters.gps_timestamp = self.gps.last_valid
 
-        parameters.lane_curvature, parameters.lateral_offset = self.lane_recognizer.retrieve_state()
-        parameters.cv_timestamp = self.lane_recognizer.last_valid
+        #parameters.lane_curvature, parameters.lateral_offset = self.lane_recognizer.retrieve_state()
+        #parameters.cv_timestamp = self.lane_recognizer.last_valid
+        self.cv_process.retrieve_state()    # The follwing results may not be updated on reading.
+        parameters.lane_curvature = self.cv_results[0]
+        parameters.lateral_offset = self.cv_results[1]
+        parameters.cv_timestamp = self.cv_results[2]
 
         return parameters
 
@@ -50,8 +58,10 @@ class SensorFuser(object):
         self.ultrasonic.stop_measuring()
         self.gps.stop_measuring()
         self.lidar.stop_measuring()
-        self.camera.stop_measuring()
-        self.lane_recognizer.stop_measuring()
+        #self.camera.stop_measuring()
+        #self.lane_recognizer.stop_measuring()
+        self.cv_worker.stop()
+        self.cv_worker.join()
 
     def get_distance(self, parameters):
         ultrasonic_dist = self.ultrasonic.retrieve_state()
