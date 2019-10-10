@@ -27,7 +27,7 @@ CONTROLS:
 
 Linearization for sample time 0.1s
 
-Corresponding MATLAB/SIMULINK Model: mpc_cv_unconstrained
+Corresponding MATLAB/SIMULINK Model: mpc_cv_obst
 */
 
 void init_ss()

@@ -110,5 +110,7 @@ mpc<NR_OF_STATES, NR_OF_CONTROLS, PREDICTION_HORIZON> initialize_mpc_object(int 
 mpc<NR_OF_STATES, NR_OF_CONTROLS, PREDICTION_HORIZON> get_best_mpc_object(int speed)
 {
     int i = max(int(speed) - 2, 0);
+    if (DEBUG)
+        cout << "DEBUG: MPC CV unconstr used with parameters idx " << i << "\n";
     return mpc_objects[i];
 }

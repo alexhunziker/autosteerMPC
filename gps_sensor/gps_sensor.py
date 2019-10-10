@@ -9,7 +9,7 @@ class GPSSensor(object):
         self.stop = False
         self.verbose = verbose
         self.last_valid = time.time()
-        self.gps = {"lat": 0, "lon": 0, "altitude": 0, "speed": 0}
+        self.gps = {"lat": 0, "lon": 0, "altitude": 0, "speed": 0, "yaw": 0, "yaw_rate": 0}
 
         measure_thread = threading.Thread(target=self.measure_loop)
         measure_thread.start()
@@ -23,9 +23,11 @@ class GPSSensor(object):
                 "lat": gpsd.fix.latitude,
                 "lon": gpsd.fix.longitude,
                 "altitude": gpsd.fix.altitude,
-                "speed": gpsd.fix.speed
+                "speed": gpsd.fix.speed,
+                "yaw": gpsd.fix.track,
+                "yaw_rate": gpsd.fix.track - self.gps["yaw"]
             }
-            if self.gps["lat"] > 0:
+            if gps_received["lat"] > 0:
                 self.gps = gps_received
                 self.last_valid = time.time()
             if self.verbose:

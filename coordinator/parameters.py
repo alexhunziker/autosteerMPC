@@ -6,7 +6,7 @@ class Parameters(object):
         self.distance = 500
         self.distance_timestamp = None
 
-        self.gps = {"lat": 0, "lon": 0, "altitude": None, "speed": None}
+        self.gps = {"lat": 0, "lon": 0, "altitude": None, "speed": None, "yaw": None, "yaw_rate": None}
         self.gps_timestamp = None
 
         self.next_target = (0, 0)
@@ -20,10 +20,10 @@ class Parameters(object):
         self.yaw_target = 0
         self.yaw_target_timestamp = None
 
-        self.speed = 0
+        self.speed = 0.0
         self.speed_timestamp = None
 
-    def update_target_yaw(self):
+    def update_target_yaw(self): # TODO: Probably not needed anymore
         try:
             self.yaw_target = math.atan2(self.gps["lon"] - self.next_target[1], self.gps["lat"] - self.next_target[0])
             self.yaw_target_timestamp = time.time()
