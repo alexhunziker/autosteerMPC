@@ -85,8 +85,9 @@ class MPCBridge(object):
         v_target = None
         cv_available = False
         gps_available = False
-        if parameters.lane_curvature is not None:
+        if not math.isnan(parameters.lane_curvature):
             yaw_rate_target = MPCBridge.calculate_yaw_rate_target(parameters.gps["speed"], parameters.lane_curvature)
+            v_target = MPCBridge.calculate_target_speed(x_target, y_target, x_current, y_current, abs(parameters.gps["yaw_rate"]))
             cv_available = True
         elif parameters.gps["lat"] > 0:
             gps_available = True

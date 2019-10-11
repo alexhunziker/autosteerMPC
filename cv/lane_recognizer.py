@@ -15,7 +15,7 @@ class LaneRecognizer(object):
         self.camera_object = camera
         self.curve_radius = None
         self.lateral_deviation = None
-        self.last_valid = None
+        self.last_valid = time.time()
         self.stop = False
         self.second_order_recognizer = SecondOrderEdgeRecognizer(destination_size=LaneRecognizer.RESOLUTION,
                                                                  debug=self.debug)
@@ -48,7 +48,8 @@ class LaneRecognizer(object):
             cv2.imshow('result', result)
             cv2.waitKey(0)
 
-        self.last_valid = time.time()
+        if self.curve_radius is not None:
+            self.last_valid = time.time()
         return 1
 
     def retrieve_state(self):
