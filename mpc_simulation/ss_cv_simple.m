@@ -1,9 +1,9 @@
-m = 30;     % Mass
-lf = 0.7;   % Distance mass center/front wheel
-lr = 0.3;   % Distance mass center/rear wheel
-cf = 3000;   % Cornering Stiffness front
-cr = 3000;   % Cornering Stiffness rear
-iz = 100;   % Yaw Moment of Innertia
+m = 22;     %  (kg)   ETROPOLIS Neo 29er 50W 36V 12Ah
+lf = 1.10;  % Distance mass center/front wheel
+lr = 0.70;  % Distance mass center/rear wheel
+cf = 7*10^4; %(N/rad) lateral static stiffness L1 Tire-- http://www.ein.org.pl/sites/default/files/2014-01-11.pdf
+cr = 7*10^4; %(N/rad) lateral static stiffness L1 Tire-- http://www.ein.org.pl/sites/default/files/2014-01-11.pdf
+iz = 1/12 * (m) * (lr+lf)^2;  % (kgm^2) moment of inertia of bicycle --> 1/12 m l^2 = 1/12 * (22 kg) * (1.18 m)^2
 
 % Sample Time
 Ts = 0.01;
