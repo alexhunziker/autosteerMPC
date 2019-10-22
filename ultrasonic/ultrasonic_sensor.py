@@ -5,7 +5,7 @@ import RPi.GPIO as GPIO
 
 
 class UltrasonicSensor(object):
-    GPIO_PIN = 2
+    GPIO_PIN = 4
     TIMEOUT_1 = 1000
     TIMEOUT_2 = 20000
 

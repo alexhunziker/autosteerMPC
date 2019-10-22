@@ -31,7 +31,7 @@ class GPSSensor(object):
                 self.gps = gps_received
                 self.last_valid = time.time()
             if self.verbose:
-                print(self.gps)
+                print("DEBUG: GPS State is", self.gps)
             time.sleep(0.1)
             gpsd.next()
 

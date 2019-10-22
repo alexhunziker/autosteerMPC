@@ -14,15 +14,15 @@ from cv_process import CVProcess
 
 class SensorFuser(object):
     LIDAR_CUTOFF = 2.0
+    EPS = 0.000001
 
     def __init__(self, verbose=True):
         self.verbose = verbose
         self.ultrasonic = UltrasonicSensor(verbose=False)
         self.gps = GPSSensor(verbose=True)
-        #self.camera = Camera(verbose=True)
-        #self.lane_recognizer = LaneRecognizer(self.camera)
-        self.cv_results = multiprocessing.Array("f", [0, 1])
+        self.cv_results = multiprocessing.Array("d", [float("nan"), float("nan"), float("nan")])
         self.cv_worker = CVProcess(self.cv_results)
+        self.cv_worker.start()
 
         self.lidar = ctypes.CDLL("../lidar/build/liblidar_sensor.so")
         self.lidar.getDistanceForAngle.argtypes = ([ctypes.c_double])
@@ -45,9 +45,7 @@ class SensorFuser(object):
         parameters.gps = self.gps.retrieve_state()
         parameters.gps_timestamp = self.gps.last_valid
 
-        #parameters.lane_curvature, parameters.lateral_offset = self.lane_recognizer.retrieve_state()
-        #parameters.cv_timestamp = self.lane_recognizer.last_valid
-        self.cv_process.retrieve_state()    # The follwing results may not be updated on reading.
+        self.cv_worker.retrieve_state()
         parameters.lane_curvature = self.cv_results[0]
         parameters.lateral_offset = self.cv_results[1]
         parameters.cv_timestamp = self.cv_results[2]
@@ -58,10 +56,8 @@ class SensorFuser(object):
         self.ultrasonic.stop_measuring()
         self.gps.stop_measuring()
         self.lidar.stop_measuring()
-        #self.camera.stop_measuring()
-        #self.lane_recognizer.stop_measuring()
         self.cv_worker.stop()
-        self.cv_worker.join()
+        #self.cv_worker.join()
 
     def get_distance(self, parameters):
         ultrasonic_dist = self.ultrasonic.retrieve_state()
@@ -86,7 +82,7 @@ class SensorFuser(object):
     def adjust_distance_for_target_direction(self, parameters):
         distance_target_yaw_direction = self.lidar.getDistanceForAngle(
             ctypes.c_double(parameters.yaw_target))
-        if parameters.speed / distance_target_yaw_direction > 3:
+        if parameters.speed / (distance_target_yaw_direction+SensorFuser.EPS) > 3:
             return
 
         probe_angle = parameters.yaw_target
