@@ -18,7 +18,7 @@ class MPCBridge(object):
 
     CRUISING_VELOCITY = 4.0
 
-    def __init__(self, silent=False, simulation_mode=False, debug=False):
+    def __init__(self, silent=False, simulation_mode=False, debug=True):
         self.silent = silent
         self.simulation_mode = simulation_mode
         self.debug = debug
@@ -45,6 +45,7 @@ class MPCBridge(object):
 
     @classmethod
     def calculate_time_to_collision(cls, distance, speed):
+        # Note: Distance is expected to be in meters here
         if speed<0.1: speed = 0.1
         return distance/speed if distance>1.0 else 0
 
@@ -74,10 +75,10 @@ class MPCBridge(object):
 
     @classmethod
     def calculate_yaw_rate_target(cls, speed, radius):
-        return speed/radius # TODO: Double check this...
-
+        return speed/radius 
+        
     def request_step(self, parameters):
-        time_to_collision = MPCBridge.calculate_time_to_collision(parameters.distance, parameters.speed)
+        time_to_collision = MPCBridge.calculate_time_to_collision(parameters.distance/100, parameters.speed)
         x_target = MPCBridge.lat_transform(parameters.next_target[0])
         y_target = MPCBridge.lon_transform(parameters.next_target[1])
         x_current = MPCBridge.lat_transform(parameters.gps["lat"])
