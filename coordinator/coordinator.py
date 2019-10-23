@@ -24,11 +24,11 @@ class Coordinator(object):
     def stop_system(self):
         self.active = False
 
-    def start_trip(self, start, destination):
+    def start_trip(self, start, destination, use_cv=True, fake_gps=False, speed=None):
         self.health_checker.startup()
         self.health_checker.double_flash()
         self.path_manager.retrieve_path(start, destination)
-        self.sensor_fuser = SensorFuser()
+        self.sensor_fuser = SensorFuser(use_cv=use_cv, fake_gps=fake_gps, speed=speed)
         coordinator_thread = threading.Thread(target=self.main_loop)
         coordinator_thread.start()
         self.health_checker.startup_done()

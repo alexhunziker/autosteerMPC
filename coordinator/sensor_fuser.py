@@ -16,13 +16,21 @@ class SensorFuser(object):
     LIDAR_CUTOFF = 2.0
     EPS = 0.000001
 
-    def __init__(self, verbose=True):
+    def __init__(self, verbose=True, use_cv=True, fake_gps=False, speed=None):
         self.verbose = verbose
+        self.use_cv = use_cv
+        self.fake_gps = fake_gps
         self.ultrasonic = UltrasonicSensor(verbose=False)
-        self.gps = GPSSensor(verbose=True)
+
+        if not fake_gps:
+            self.gps = GPSSensor(verbose=True)
+        else:
+            self.fake_speed = speed
+
         self.cv_results = multiprocessing.Array("d", [float("nan"), float("nan"), float("nan")])
-        self.cv_worker = CVProcess(self.cv_results)
-        self.cv_worker.start()
+        if self.use_cv:
+            self.cv_worker = CVProcess(self.cv_results)
+            self.cv_worker.start()
 
         self.lidar = ctypes.CDLL("../lidar/build/liblidar_sensor.so")
         self.lidar.getDistanceForAngle.argtypes = ([ctypes.c_double])
@@ -42,10 +50,14 @@ class SensorFuser(object):
         self.get_distance(parameters)
         self.adjust_distance_for_target_direction(parameters)
 
-        parameters.gps = self.gps.retrieve_state()
-        parameters.gps_timestamp = self.gps.last_valid
+        if not self.fake_gps:
+            parameters.gps = self.gps.retrieve_state()
+            parameters.gps_timestamp = self.gps.last_valid
+        else:
+            parameters.speed = self.fake_speed
 
-        self.cv_worker.retrieve_state()
+        if self.use_cv:
+            self.cv_worker.retrieve_state()
         parameters.lane_curvature = self.cv_results[0]
         parameters.lateral_offset = self.cv_results[1]
         parameters.cv_timestamp = self.cv_results[2]
@@ -62,7 +74,7 @@ class SensorFuser(object):
     def get_distance(self, parameters):
         ultrasonic_dist = self.ultrasonic.retrieve_state()
         lidar_dist = self.lidar.getDistanceForAngle(ctypes.c_double(0))-5
-        if ultrasonic_dist > 500:
+        if ultrasonic_dist is None or ultrasonic_dist > 500:
             parameters.distance = lidar_dist
             parameters.distance_timestamp = self.ultrasonic.last_valid
         else:
