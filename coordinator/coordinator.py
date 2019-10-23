@@ -17,19 +17,21 @@ class Coordinator(object):
         self.path_manager = PathManager()
         self.mpc_bridge = MPCBridge()
         self.actuator_bridge = ActuatorBridge()
+        self.health_checker.double_flash()
 
         self.active = True
-        self.health_checker.ready()
 
     def stop_system(self):
         self.active = False
 
     def start_trip(self, start, destination):
+        self.health_checker.startup()
         self.health_checker.double_flash()
         self.path_manager.retrieve_path(start, destination)
         self.sensor_fuser = SensorFuser()
         coordinator_thread = threading.Thread(target=self.main_loop)
         coordinator_thread.start()
+        self.health_checker.startup_done()
 
     def main_loop(self):
         while self.active:

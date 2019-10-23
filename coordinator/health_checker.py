@@ -24,8 +24,11 @@ class HealthChecker(object):
         GPIO.setup(HealthChecker.GPIO_BLLUE, GPIO.OUT)
         GPIO.setup(HealthChecker.GPIO_YELLOW, GPIO.OUT)
 
-    def ready(self):
+    def startup(self):
         GPIO.output(HealthChecker.GPIO_YELLOW, GPIO.HIGH)
+
+    def startup_done(self):
+        GPIO.output(HealthChecker.GPIO_YELLOW, GPIO.LOW)
 
     def error(self):
         GPIO.output(HealthChecker.GPIO_RED, GPIO.HIGH)
@@ -38,12 +41,10 @@ class HealthChecker(object):
         GPIO.output(HealthChecker.GPIO_RED, GPIO.HIGH)
         GPIO.output(HealthChecker.GPIO_GREEN, GPIO.HIGH)
         GPIO.output(HealthChecker.GPIO_BLLUE, GPIO.HIGH)
-        GPIO.output(HealthChecker.GPIO_YELLOW, GPIO.HIGH)
         time.sleep(0.2)
         GPIO.output(HealthChecker.GPIO_RED, GPIO.LOW)
         GPIO.output(HealthChecker.GPIO_GREEN, GPIO.LOW)
         GPIO.output(HealthChecker.GPIO_BLLUE, GPIO.LOW)
-        GPIO.output(HealthChecker.GPIO_YELLOW, GPIO.LOW)
         time.sleep(0.2)
 
     def check(self, parameters):
@@ -78,12 +79,13 @@ class HealthChecker(object):
             time.sleep(0.05)
             GPIO.output(HealthChecker.GPIO_GREEN, GPIO.LOW)
 
-test_flag = False
+test_flag = True
 if __name__ == "__main__" and test_flag:
     healthChecker = HealthChecker(verbose=True)
     healthChecker.double_flash()
+    healthChecker.startup()
     time.sleep(1)
-    healthChecker.ready()
+    healthChecker.startup_done()
     time.sleep(1)
     healthChecker.flash(True)
     time.sleep(1)
