@@ -53,9 +53,9 @@ class GPSSensor(object):
         if self.history == [] or (time.time()-self.last_valid)>GPSSensor.HISTORY_THRESHOLD:
             if self.verbose:
                 print("DEBUG: GPS history reset")
-            self.history = [current_state, current_state, current_state, current_state, current_state]
+            self.history = [current_state, current_state, current_state]
         else:
-            self.history.pop()
+            self.history.pop(0)
             self.history.append(current_state)
 
         if math.isnan(current_state["speed"]):
