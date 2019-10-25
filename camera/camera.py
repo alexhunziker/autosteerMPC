@@ -27,10 +27,12 @@ class Camera(object):
                 raw_capture = PiRGBArray(self.camera)
                 self.camera.capture(raw_capture, format="bgr")
                 self.raw_capture_array = raw_capture.array
+                if self.debug:
+                    print("DEBUG: Picture taken.")
             except:
-                print("WARN: Image capturing failed...")
+                print(time.time(), "WARN: Image capturing failed...")
                 time.sleep(0.1)
-                return None
+                self.raw_capture_array = None
 
     def stop_measuring(self):
         self.stop = True
