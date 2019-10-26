@@ -3,7 +3,7 @@ from typing import List
 import cv2
 import numpy as np
 
-from .image_warper import ImageWarper
+from image_warper import ImageWarper
 
 
 class CurveCalculator(object):
@@ -16,10 +16,12 @@ class CurveCalculator(object):
                  meters_per_pixel_x=DEFAULT_METERS_PER_PIXEL_X,
                  meters_per_pixel_y=DEFAULT_METERS_PER_PIXEL_Y,
                  debug=False,
-                 mode="B"
+                 mode="B",
+                 target_offset=0.5
                  ):
         CurveCalculator.DEBUG = debug
         self.mode = mode
+        self.target_offset = target_offset
 
         self.left = [[], [], []]
         self.right = [[], [], []]
@@ -88,10 +90,11 @@ class CurveCalculator(object):
                 current_x_position = np.int(np.mean(nonzero_x_pixels[non_zero_pixels]))
 
         lane_pixels = np.concatenate(lane_pixels)
-        if len(lane_pixels) < minimum_pixels*(n_windows/2):
+        if len(lane_pixels) < minimum_pixels * (n_windows / 1.5):
             if left_lane: self.left_fitted_curve = None 
-            if not left_lane: self.right_fitted_curve = None 
-            print("The expected number of pixels was at least 200, but only ", len(lane_pixels), "were found")
+            if not left_lane: self.right_fitted_curve = None
+            print("The expected number of pixels was at least", minimum_pixels, ", but only ", len(lane_pixels),
+                  "were found")
             return
 
         # Extract pixel positions
@@ -139,14 +142,14 @@ class CurveCalculator(object):
         if self.right_fitted_curve is not None:
             right_curve_radius, current_right_x = self.get_curve_radius(img, self.right_fitted_curve)
 
-        bycicle_position = img.shape[1] / 2  # assumed to be in the middle of image
+        bycicle_position = img.shape[1] / 2 * self.meters_per_pixel_x  # assumed to be in the middle of image
         offset = None
         if mode == "B":
             if right_curve_radius is not None and left_curve_radius is not None:
                 offset = (bycicle_position-(current_right_x + current_left_x)/2) * self.meters_per_pixel_x / 10
         if mode == "R":
             if right_curve_radius is not None:
-                offset = (bycicle_position-current_right_x) * self.meters_per_pixel_x / 10
+                offset = -((bycicle_position - current_right_x) + self.target_offset)
 
         if CurveCalculator.DEBUG:
             print("Calculated Curve in Worldspace for mode", mode, "is:", (left_curve_radius, right_curve_radius, offset))
@@ -158,13 +161,14 @@ class CurveCalculator(object):
         lowest_y_pixel: float = img_height - 1  # "closest y pixel of curve to current position"
         curve_pixels_y: np.ndarray = np.linspace(0, lowest_y_pixel, img_height)
         fitted_curve = np.polyfit(curve_pixels_y * self.meters_per_pixel_y, x_points * self.meters_per_pixel_x, 2)
-        # Calculate radius
+        # Calculate radius of curve
         curve_radius = ((1 + (2 * fitted_curve[0] * lowest_y_pixel * self.meters_per_pixel_y + fitted_curve[
             1]) ** 2) ** 1.5) / np.absolute((2 * fitted_curve[0]))
-        current_x = fitted_curve[0] * img.shape[0] ** 2 + fitted_curve[1] * img.shape[0] + fitted_curve[2]
+        current_x = (fitted_curve[0] * (img.shape[0] * self.meters_per_pixel_y) ** 2 + fitted_curve[1] * (
+                    img.shape[0] * self.meters_per_pixel_y) + fitted_curve[2])
         return curve_radius, current_x
 
-    def draw_lanes(self, img):
+    def draw_lanes(self, img, roi):
         ploty = np.linspace(0, img.shape[0] - 1, img.shape[0])
         color_img = np.zeros_like(img)
 
@@ -182,6 +186,6 @@ class CurveCalculator(object):
             cv2.fillPoly(color_img, np.int_(points), (0, 200, 255))
 
         inv_perspective = ImageWarper().inv_perspective_warp(color_img, dst_size=(img.shape[1], img.shape[0]),
-                                                             dst=[(0.3, 0.3), (0.48, 0.3), (0, 1), (1, 1)])
+                                                             dst=roi)
         inv_perspective = cv2.addWeighted(img, 1, inv_perspective, 0.7, 0)
         return inv_perspective
