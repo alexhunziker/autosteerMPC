@@ -8,8 +8,8 @@ mpc2.ControlHorizon = 2;
 mpc2.Model.Nominal.U = [0;0;0;0];
 mpc2.Model.Nominal.Y = [0;0;0;0;0;0];
 %% specify constraints for MV and MV Rate
-mpc2.MV(1).Min = -0.785398163397448;
-mpc2.MV(1).Max = 0.785398163397448;
+mpc2.MV(1).Min = -0.585398163397448;
+mpc2.MV(1).Max = 0.585398163397448;
 mpc2.MV(1).RateMin = -0.1;
 mpc2.MV(1).RateMax = 0.1;
 mpc2.MV(3).Min = 0;
