@@ -3,7 +3,7 @@ from typing import List
 import cv2
 import numpy as np
 
-from image_warper import ImageWarper
+from .image_warper import ImageWarper
 
 
 class CurveCalculator(object):

@@ -4,9 +4,9 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-from curve_calculator import CurveCalculator
-from edge_image_preprocessor import EdgeImagePreprocessor
-from image_warper import ImageWarper
+from .curve_calculator import CurveCalculator
+from .edge_image_preprocessor import EdgeImagePreprocessor
+from .image_warper import ImageWarper
 
 
 class SecondOrderEdgeRecognizer(object):
