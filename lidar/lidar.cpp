@@ -12,7 +12,7 @@ using namespace ydlidar;
 
 bool stop = false;
 
-const bool debug = false;
+const bool debug = true;
 double distances[160];
 int last_valid[160];
 
@@ -62,9 +62,10 @@ void LaserScanCallback(const LaserScan &scan)
 {
     if (debug)
     {
-        std::cout << "DEBUG: received scan size: " << scan.ranges.size() << std::endl;
-        std::cout << "DEBUG: scan   system time: " << scan.system_time_stamp << std::endl;
-        std::cout << "DEBUG: scan     frequency: " << 1000000000.0 / scan.config.scan_time << "HZ" << std::endl;
+        //std::cout << "DEBUG: received scan size: " << scan.ranges.size() << std::endl;
+        //std::cout << "DEBUG: scan   system time: " << scan.system_time_stamp << std::endl;
+        //std::cout << "DEBUG: scan     frequency: " << 1000000000.0 / scan.config.scan_time << "HZ" << std::endl;
+	std::cout << "DEBUG: distance front: " << distances[78] << "\n"; 
     }
 
     // Loop over received data points
