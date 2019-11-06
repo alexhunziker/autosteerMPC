@@ -2,10 +2,12 @@ import serial
 import time
 
 class ActuatorBridge(object):
-    def __init__(self):
+    def __init__(self, mock=False):
         self.connection = serial.Serial('/dev/ttyUSB1', 115200)
         self.connection.isOpen()
         self.last_impulses = None
+        if mock:
+            self.send = self.mock_send
 
     def send(self, impulses):
         print("INFO: Throttle", impulses.throttle, "Breaks", impulses.breaks, "Steering", impulses.steering)
@@ -31,6 +33,10 @@ class ActuatorBridge(object):
         angle = str(int(value / 3.14 * 180) + 90)
         control_string = "<l" + angle + ">"
         self.connection.write(control_string.encode('utf-8'))
+
+    def mock_send(self, impulses):
+        print("INFO: Throttle", impulses.throttle, "Breaks", impulses.breaks, "Steering", impulses.steering)
+        print("INFO: Mock actuator bridge. SEND NOTHING")
 
 if __name__ == "__main__":
     actuatorBridge = ActuatorBridge()
