@@ -5,7 +5,7 @@ from impulses import Impulses
 
 class ActuatorBridge(object):
 
-    def __init__(self):
+    def __init__(self, mock=False):
         if mock:
             self.send = self.mock_send
             return
@@ -18,7 +18,7 @@ class ActuatorBridge(object):
 
     def send(self, impulses):
         if self.arduino is None:
-            pritn("WARN: Arduino not available. No commands were sent")
+            print("WARN: Arduino not available. No commands were sent")
             return
         print("INFO: Throttle", impulses.throttle, "Breaks", impulses.breaks, "Steering", impulses.steering)
         if impulses.throttle != self.last_impulses.throttle: 
