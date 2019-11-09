@@ -8,8 +8,8 @@ mpc_gps_s.ControlHorizon = 2;
 mpc_gps_s.Model.Nominal.U = [0;0;0];
 mpc_gps_s.Model.Nominal.Y = [0;0;0;0];
 %% specify constraints for MV and MV Rate
-mpc_gps_s.MV(1).Min = -0.305398163397448;
-mpc_gps_s.MV(1).Max = 0.305398163397448;
+mpc_gps_s.MV(1).Min = -0.705398163397448;
+mpc_gps_s.MV(1).Max = 0.705398163397448;
 mpc_gps_s.MV(1).RateMin = -0.1;
 mpc_gps_s.MV(1).RateMax = 0.1;
 mpc_gps_s.MV(2).Min = 0;

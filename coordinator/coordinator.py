@@ -11,12 +11,12 @@ from sensor_fuser import SensorFuser
 class Coordinator(object):
     STEP_TIME = 0.1
 
-    def __init__(self):
+    def __init__(self, mock_actuator=False):
         self.health_checker = HealthChecker()
         self.health_checker.double_flash()
         self.path_manager = PathManager()
         self.mpc_bridge = MPCBridge()
-        self.actuator_bridge = ActuatorBridge()
+        self.actuator_bridge = ActuatorBridge(mock=mock_actuator)
         self.health_checker.double_flash()
 
         self.active = True
@@ -53,7 +53,7 @@ class Coordinator(object):
 
 
 if __name__ == "__main__":
-    coordinator = Coordinator()
+    coordinator = Coordinator(mock_actuator=True)
     coordinator.start_trip("0xa", "0xab")
     time.sleep(20)
     coordinator.stop_system()

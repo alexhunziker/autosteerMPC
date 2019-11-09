@@ -4,7 +4,11 @@ import time
 from impulses import Impulses
 
 class ActuatorBridge(object):
-    def __init__(self):
+
+    def __init__(self, mock=False):
+        if mock:
+            self.send = self.mock_send
+            return
         try:
             self.arduino = serial.Serial('/dev/ttyUSB0', 9600)
             self.arduino.isOpen()
@@ -14,7 +18,7 @@ class ActuatorBridge(object):
 
     def send(self, impulses):
         if self.arduino is None:
-            pritn("WARN: Arduino not available. No commands were sent")
+            print("WARN: Arduino not available. No commands were sent")
             return
         print("INFO: Throttle", impulses.throttle, "Breaks", impulses.breaks, "Steering", impulses.steering)
         if impulses.throttle != self.last_impulses.throttle: 
@@ -48,6 +52,10 @@ class ActuatorBridge(object):
         control_string = "<l" + angle + ">"
         print(control_string)
         self.arduino.write(control_string.encode('utf-8'))
+
+    def mock_send(self, impulses):
+        print("INFO: Throttle", impulses.throttle, "Breaks", impulses.breaks, "Steering", impulses.steering)
+        print("INFO: Mock actuator bridge. SEND NOTHING")
 
 if __name__ == "__main__":
     actuatorBridge = ActuatorBridge()
