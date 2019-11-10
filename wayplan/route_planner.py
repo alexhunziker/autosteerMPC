@@ -1,4 +1,5 @@
 import math
+import random
 
 from .data_loader import DataLoader
 from .result_writer import ResultWriter
@@ -51,4 +52,14 @@ class RoutePlanner(object):
         return start_edges
 
 if __name__ == "__main__":
-    RoutePlanner().calculate("0x1d", "0x1b0")
+    for i in range(20):
+        print("Calculating route", i)
+        p1 = str(hex(int(random.random()*463)))
+        p2 = str(hex(int(random.random()*463)))
+        print("...from point", p1, "to", p2)
+        try:
+            result = RoutePlanner().calculate(p1, p2)
+            ResultWriter('../target_trajectory'+str(i)+'.txt').write(result)
+        except:
+            print("No valid route found")
+            i = i-1
