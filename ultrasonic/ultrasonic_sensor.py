@@ -7,7 +7,7 @@ import RPi.GPIO as GPIO
 class UltrasonicSensor(object):
     GPIO_PIN = 4
     TIMEOUT_1 = 1000
-    TIMEOUT_2 = 20000
+    TIMEOUT_2 = 40000
 
     usleep = lambda x: time.sleep(x / 1_000_000.0)
 
@@ -56,9 +56,10 @@ class UltrasonicSensor(object):
         for count in range(UltrasonicSensor.TIMEOUT_2):
             if not GPIO.input(UltrasonicSensor.GPIO_PIN):
                 break
-        if count >= UltrasonicSensor.TIMEOUT_2:
+        if count >= UltrasonicSensor.TIMEOUT_2-1:
             print("M2 failed")
             return None
+        print(count, UltrasonicSensor.TIMEOUT_2)
         self.last_valid = time.time()
         t_2 = time.time()
         dt = int((t_1 - t_0) * 1000000)
