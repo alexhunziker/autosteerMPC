@@ -65,17 +65,18 @@ void LaserScanCallback(const LaserScan &scan)
         //std::cout << "DEBUG: received scan size: " << scan.ranges.size() << std::endl;
         //std::cout << "DEBUG: scan   system time: " << scan.system_time_stamp << std::endl;
         //std::cout << "DEBUG: scan     frequency: " << 1000000000.0 / scan.config.scan_time << "HZ" << std::endl;
-	std::cout << "DEBUG: distance front: " << distances[78] << "\n"; 
+        std::cout << "DEBUG: distance front: " << distances[78] << " measured at " << last_valid[78] << "\n";
     }
 
     // Loop over received data points
+    int stored = 0;
     for (size_t i = 0; i < scan.ranges.size(); i++)
     {
         double angle = scan.config.min_angle + i * scan.config.ang_increment;
         double distance = scan.ranges[i];
         int intensity = scan.intensities[i];
 
-        if (intensity >= 1)
+        if (intensity >= 0)
         {
             // Scanning range is also restricted in lidar.ini
             // (only points ahead of vehicule are relevant)
@@ -84,8 +85,13 @@ void LaserScanCallback(const LaserScan &scan)
                 int idx = getIndexForAngle(angle);
                 distances[idx] = distance;
                 last_valid[idx] = scan.system_time_stamp;
+                stored++;
             }
         }
+    }
+    if (debug)
+    {
+        std::cout << "Stored data points: " << stored << "\n";
     }
 }
 
