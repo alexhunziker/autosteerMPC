@@ -54,7 +54,7 @@ class Coordinator(object):
 
 if __name__ == "__main__":
     coordinator = Coordinator(mock_actuator=True)
-    coordinator.start_trip("0xa", "0xab")
+    coordinator.start_trip("0x0", "0x3")
     time.sleep(20)
-    coordinator.stop_system()
+    #coordinator.stop_system()
 

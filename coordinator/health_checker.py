@@ -78,6 +78,11 @@ class HealthChecker(object):
             GPIO.output(HealthChecker.GPIO_GREEN, GPIO.HIGH)
             time.sleep(0.05)
             GPIO.output(HealthChecker.GPIO_GREEN, GPIO.LOW)
+    
+    def flash_yellow(self):
+        GPIO.output(HealthChecker.GPIO_YELLOW, GPIO.HIGH)
+        time.sleep(0.5)
+        GPIO.output(HealthChecker.GPIO_YELLOW, GPIO.LOW)
 
 test_flag = True
 if __name__ == "__main__" and test_flag:

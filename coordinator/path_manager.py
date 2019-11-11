@@ -3,14 +3,15 @@ import sys
 sys.path.append('../')
 
 from wayplan.route_planner import RoutePlanner
-
+from health_checker import HealthChecker 
 
 class PathManager:
-    # TODO: This needs to be scaled down.
-    GPS_PRECISION = 2.5
+    GPS_PRECISION = 5e-5    # Empirical value
 
-    def __init__(self):
+    def __init__(self, verbose=False):
         self.route_planner = RoutePlanner()
+        self.health_checker = HealthChecker()
+        self.verbose = verbose
 
     def retrieve_path(self, start, destination):
         self.route = self.route_planner.calculate(start, destination)
@@ -22,7 +23,12 @@ class PathManager:
         if (abs(position["lat"] - float(self.route[0][0])) < PathManager.GPS_PRECISION and
                 abs(position["lon"] - float(self.route[0][1])) < PathManager.GPS_PRECISION):
             print("INFO: Next way point loaded.")
-            self.route.pop(0)
+            self.health_checker.flash_yellow()
+            if len(self.route)>1:
+                self.route.pop(0)
+        else:
+            if self.verbose:
+                print("DEBUG: Distances to next are", abs(position["lat"] - float(self.route[0][0])), abs(position["lat"] - float(self.route[0][1])))
 
 
 if __name__ == "__main__":
