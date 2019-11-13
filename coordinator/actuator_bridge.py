@@ -15,19 +15,28 @@ class ActuatorBridge(object):
             self.last_impulses = Impulses(0, 0, 0)
         except:
             print("ERROR: Connection with Arduino failed.")
+        self.busy = False # Because the vehicle is slow with processing, otherwise signals get lostS
 
     def send(self, impulses):
+        if self.busy:
+            print("INFO: Commands skipped, actuator bridge is busy")
+            return
+        self.busy = True
         if self.arduino is None:
             print("WARN: Arduino not available. No commands were sent")
             return
         print("INFO: Throttle", impulses.throttle, "Breaks", impulses.breaks, "Steering", impulses.steering)
         if impulses.throttle != self.last_impulses.throttle: 
             self.write_throttle(impulses.throttle)
+            time.sleep(0.5)
         if impulses.breaks != self.last_impulses.breaks:
             self.write_breaks(impulses.breaks)
+            time.sleep(0.5)
         if impulses.steering != self.last_impulses.steering:
             self.write_steering(impulses.steering)
+            time.sleep(0.5)
         self.last_impulses = impulses
+        self.busy = False
 
     def write_throttle(self, value):
         # the motor is very weak; therefore the range is adjusted to 200-255
@@ -59,11 +68,19 @@ class ActuatorBridge(object):
 
 if __name__ == "__main__":
     actuatorBridge = ActuatorBridge()
+    for i in range(-4, 5, 1):
+        print("Test steering; ", i/10)
+        actuatorBridge.send(Impulses(i/10, 0, 0))
+        time.sleep(1)
+    for i in range(0, 10, 1):
+        print("Test throttle; ", i/10)
+        actuatorBridge.send(Impulses(0, i/10, 0))
+        time.sleep(1)
     while True:
-        actuatorBridge.send(Impulses(-0.0, 0, 0))
-        time.sleep(1)
-        actuatorBridge.send(Impulses(0.2, 1, 0))
-        time.sleep(1)
-        actuatorBridge.send(Impulses(0.2, 0.5, 0.5))
-        time.sleep(1)
+        #actuatorBridge.send(Impulses(-0.0, 0, 0))
+        #time.sleep(1)
+        actuatorBridge.send(Impulses(0, 1, 0))
+        time.sleep(10)
+        #actuatorBridge.send(Impulses(0.2, 0.5, 0.5))
+        #time.sleep(1)
 
