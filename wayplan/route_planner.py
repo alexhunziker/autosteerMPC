@@ -7,8 +7,8 @@ from .result_writer import ResultWriter
 
 class RoutePlanner(object):
     def __init__(self):
-        self.edges = DataLoader("../wayplan/resources/way_graph_raw.txt").load()
-        #self.edges = DataLoader("../wayplan/resources/mini_map_ch.txt").load()
+        #self.edges = DataLoader("../wayplan/resources/way_graph_raw.txt").load()
+        self.edges = DataLoader("../wayplan/resources/mini_map_ch.txt").load()
 
     def calculate(self, start: str, destination: str):
         best_destination_weight = math.inf
