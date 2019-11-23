@@ -53,16 +53,18 @@ class MPCBridge(object):
     def calculate_target_speed(cls, x_target, y_target, x_current, y_current, yaw_term):
         diff_x = x_current - x_target
         diff_y = y_current - y_current
-        distance_speed = pow(diff_x**2 + diff_y**2, 0.5) / 2
+        distance_speed = pow(diff_x**2 + diff_y**2, 0.5) / 3
 
-        yaw_speed = (cls.CRUISING_VELOCITY - 3 * yaw_term) + 1.5
+        yaw_speed = max(0, (cls.CRUISING_VELOCITY - 3 * yaw_term)) + 1.5
         current_appropriate_speed = min(yaw_speed, distance_speed)
-        target_speed = min(current_appropriate_speed, cls.CRUISING_VELOCITY)
+        target_speed = max(0, min(current_appropriate_speed, cls.CRUISING_VELOCITY))
+        print("DEBUG: Target speed", target_speed, "yaw unfiltered speed", (cls.CRUISING_VELOCITY - 3 * yaw_term) + 1.5, "distance speed", distance_speed)
         return target_speed
 
     @classmethod
     def calculate_target_yaw(cls, x_target, y_target, x_current, y_current, yaw):
-        yaw_target = math.atan2(y_target - y_current, x_target - x_current)
+        yaw_target = math.atan2(y_target - y_current, x_target - x_current) 
+        # North is 0
 
         # Adjust so we actually take shortest diff
         yaw_diff = abs(yaw - yaw_target)
@@ -78,8 +80,8 @@ class MPCBridge(object):
         return speed/radius 
 
     def propagateOrNeutralize(self, para, speed, target):
-        if speed > 0.2:
-            return para
+        if speed > 0.3:
+            return para / 180 * 3.14
         else:
             return target
         
@@ -94,6 +96,7 @@ class MPCBridge(object):
         gps_available = False
         if not math.isnan(parameters.lane_curvature):
             yaw_rate_target = MPCBridge.calculate_yaw_rate_target(parameters.gps["speed"], parameters.lane_curvature)
+            parameters.gps["yaw"] = self.propagateOrNeutralize(parameters.gps["yaw"], parameters.gps["speed"], 0)
             parameters.gps["yaw_rate"] = self.propagateOrNeutralize(parameters.gps["yaw_rate"], parameters.gps["speed"], yaw_rate_target)
             v_target = MPCBridge.calculate_target_speed(x_target, y_target, x_current, y_current, abs(parameters.gps["yaw_rate"]))
             cv_available = True
@@ -101,6 +104,7 @@ class MPCBridge(object):
             gps_available = True
             yaw_target = MPCBridge.calculate_target_yaw(x_target, y_target, x_current, y_current, parameters.gps["yaw"])
             parameters.gps["yaw"] = self.propagateOrNeutralize(parameters.gps["yaw"], parameters.gps["speed"], yaw_target)
+            parameters.gps["yaw_rate"] = self.propagateOrNeutralize(parameters.gps["yaw_rate"], parameters.gps["speed"], 0)
             v_target = MPCBridge.calculate_target_speed(x_target, y_target, x_current, y_current, abs(yaw_target - parameters.gps["yaw"]))
 
         if time_to_collision < 3 and cv_available: self.step_cv_obst(parameters, x_current, y_current, v_target, yaw_rate_target, time_to_collision)
@@ -205,7 +209,7 @@ class MPCBridge(object):
         impulses.breaks = 1.0
         impulses.throttle = 0.0
         if (not self.silent):
-            print("TNFO: EMERGENCY BREAK APPLIED")
+            print("TNFO: Emergency break applied, time to impact lesss than 2s")
         return impulses
 
 

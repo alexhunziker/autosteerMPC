@@ -1,11 +1,23 @@
-# Setup the test vehicle
+# Closed loop testing
 
-Setting up the test vehicle is a bit tricky. The following proces has to be followed
+Setting up the test vehicle and initiate a test case works as following:
 
-1. Connect Raspberry Pi and Lidar with the power supply.
-2. Connect the raspberry pi to the steering unit.
-3. Immediatly after plug in the purple cable into the development boards positive lane (doesn't matter which one the two lanes are interwired)
-4. Immediatly after press the button on the battery pack of the vehicle to start energy supply (this will stop the servo motors from acting out)
-5. start the Script on the Raspberry pi
-6. if the lidar does not start, push the button of the white power-bank
-7. Flip the switch only once the script is running (the controller board overheats extremely quickly)
+1. Power supply for controller:
+   - Connect the Raspberry Pi with the big battery pack on the vehicle (2.1A)
+   - Connect the Lidar to the small white battery
+2. Power supply for vehicle:
+   - Connect the developer board (Arduino, Servos, Motor Driver) to the small black battery pack (2A)
+   - Connect the battery of the motor
+3. Start the script:
+   - Connect to the Pi via SSH
+   - navigate to the controller folder
+   - if needed: enter start and destination coordinates to the coordinator.py script
+   - execute coordinator.py
+4. Supplie engine with power:
+   - Flip the switch on the vehicle
+
+## Options
+
+- If the controller should be used standalone, switch mock_actuator to True
+- If no lane detection should be computed, switch use_cv to False
+- If debug logs should be shown, set debug to True

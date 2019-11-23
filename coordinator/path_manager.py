@@ -6,7 +6,7 @@ from wayplan.route_planner import RoutePlanner
 from health_checker import HealthChecker 
 
 class PathManager:
-    GPS_PRECISION = 5e-5    # Empirical value
+    GPS_PRECISION = 5e-4    # Empirical value
 
     def __init__(self, verbose=False):
         self.route_planner = RoutePlanner()
@@ -28,7 +28,7 @@ class PathManager:
                 self.route.pop(0)
         else:
             if self.verbose:
-                print("DEBUG: Distances to next are", abs(position["lat"] - float(self.route[0][0])), abs(position["lat"] - float(self.route[0][1])))
+                print("DEBUG: Distances to next are", abs(position["lat"] - float(self.route[0][0])), abs(position["lon"] - float(self.route[0][1])))
 
 
 if __name__ == "__main__":
