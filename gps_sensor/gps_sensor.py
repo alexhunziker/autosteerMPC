@@ -2,6 +2,7 @@ import threading
 import time
 import statistics
 import math
+import copy
 
 import gps
 
@@ -47,9 +48,12 @@ class GPSSensor(object):
         self.stop = True
 
     def retrieve_state(self):
-        return self.gps
+        return copy.deepcopy(self.gps)
 
     def average_measurements(self, current_state):
+        print("DEBUG: current GPS measurement is", current_state)
+        if current_state["yaw"] == 0.0:         # If no yaw recieved, take previous one
+            current_state["yaw"] = self.history[-1]["yaw"]
         if self.history == [] or (time.time()-self.last_valid)>GPSSensor.HISTORY_THRESHOLD:
             if self.verbose:
                 print("DEBUG: GPS history reset")

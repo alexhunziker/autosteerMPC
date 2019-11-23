@@ -54,7 +54,10 @@ extern "C"
         matrix<double, NR_OF_STATES, 1> target_state;
         target_state = yaw_target, 0, 0, speed_target, TARGET_TIME_TO_COLLISION;
         if (DEBUG)
+        {
+            cout << "DEBUG: current state is:" << trans(current_state) << "\n";
             cout << "DEBUG: target state is: " << trans(target_state) << "\n";
+        }
         mpc_controller.set_target(target_state);
 
         matrix<double, NR_OF_CONTROLS, 1> action = mpc_controller(current_state);
