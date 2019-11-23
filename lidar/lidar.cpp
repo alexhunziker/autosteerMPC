@@ -12,7 +12,7 @@ using namespace ydlidar;
 
 bool stop = false;
 
-const bool debug = true;
+bool debug = true;
 double distances[160];
 int last_valid[160];
 
@@ -25,10 +25,18 @@ extern "C"
         return int((angleRad + PI / 2) * 50);
     }
 
+    void disableDebug()
+    {
+        debug = false;
+    }
+
     double getDistanceForAngle(double angleRad)
     {
         int index = getIndexForAngle(angleRad);
-        cout << "returning " << distances[index] * 100 << " for angle " << angleRad << "\n";
+        if (debug)
+        {
+            cout << "DEBUG: Lidar distance " << distances[index] * 100 << " for angle " << angleRad << "\n";
+        }
         return distances[index] * 100;
     }
 
@@ -62,9 +70,9 @@ void LaserScanCallback(const LaserScan &scan)
 {
     if (debug)
     {
-        //std::cout << "DEBUG: received scan size: " << scan.ranges.size() << std::endl;
-        //std::cout << "DEBUG: scan   system time: " << scan.system_time_stamp << std::endl;
-        //std::cout << "DEBUG: scan     frequency: " << 1000000000.0 / scan.config.scan_time << "HZ" << std::endl;
+        std::cout << "DEBUG: received scan size: " << scan.ranges.size() << std::endl;
+        std::cout << "DEBUG: scan   system time: " << scan.system_time_stamp << std::endl;
+        std::cout << "DEBUG: scan     frequency: " << 1000000000.0 / scan.config.scan_time << "HZ" << std::endl;
         std::cout << "DEBUG: distance front: " << distances[78] << " measured at " << last_valid[78] << "\n";
     }
 

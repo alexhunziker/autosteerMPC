@@ -37,6 +37,7 @@ class SensorFuser(object):
         self.lidar.getDistanceForAngle.restype = ctypes.c_double
         self.lidar.getLastValidForAngle.argtypes = ([ctypes.c_double])
         self.lidar.getLastValidForAngle.restype = ctypes.c_double
+        self.lidar.disableDebug()
         measure_thread = threading.Thread(target=self.lidar_loop)
         measure_thread.start()
 
@@ -75,27 +76,37 @@ class SensorFuser(object):
         ultrasonic_dist = self.ultrasonic.retrieve_state()
         lidar_dist = self.lidar.getDistanceForAngle(ctypes.c_double(0))-5
         lidar_time = self.lidar.getLastValidForAngle(0)
-        if ultrasonic_dist is None and time.time()-lidar_time>1.0:
+        # If Lidar distance is 0, this means it usually means no obstacle detected
+        if lidar_dist == 0.0:
+            lidar_dist = 1_000
+
+        print("DEBUG: Lidar and ultrasonic dist", lidar_dist, ultrasonic_dist)
+        if ultrasonic_dist is None and time.time()-lidar_time>1.0:          # No valid measurements
             print("WARN: No reliable distance information, assuming 0")
             parameters.distance = 0
-        elif ultrasonic_dist is None or ultrasonic_dist > 450:
+        elif ultrasonic_dist > 450 and (lidar_dist > 999 or time.time()-lidar_time>1.0):  # No obstacle detected
+            print("INFO: No obstacle detected")
+            parameters.distance_timestamp = time.time()
+            parameters.distance = 1_200
+        elif ultrasonic_dist is None or ultrasonic_dist > 450:              # Only lidar signal valid
+            print("INFO: Lidar distance only of", lidar_dist)
             parameters.distance = lidar_dist
             parameters.distance_timestamp = lidar_time
-        elif time.time()-lidar_time>1.0:
+        elif time.time()-lidar_time>1.0:                                    # Only ultrasonic signal valid
+            print("INFO: Ultrasonic distance only of", ultrasonic_dist)
             parameters.distance = ultrasonic_dist
             parameters.distance_timestamp = self.ultrasonic.last_valid
-        else:
+        else:                                                               # Both sensors valid
             parameters.distance = min(lidar_dist, ultrasonic_dist)
             if lidar_dist < ultrasonic_dist:
-                if(self.verbose):
+                if(self.verbose or True):
                     print("DEBUG: Taking lidar distance of ", lidar_dist)
                 parameters.distance_timestamp = self.lidar.getLastValidForAngle(0)
             else:
-                if(self.verbose):
+                if(self.verbose or True):
                     print("DEBUG: Taking ultrasonic distance of ", ultrasonic_dist)
                 parameters.distance_timestamp = self.ultrasonic.last_valid
-
-    # TODO: LIDAR class, let's see if this makes sense. Also GPS version only a ce moment la.
+        
     def adjust_distance_for_target_direction(self, parameters):
         distance_target_yaw_direction = self.lidar.getDistanceForAngle(
             ctypes.c_double(parameters.yaw_target))

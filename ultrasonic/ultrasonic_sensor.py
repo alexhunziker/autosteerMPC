@@ -62,7 +62,7 @@ class UltrasonicSensor(object):
             if not GPIO.input(UltrasonicSensor.GPIO_PIN):
                 break
         if count >= UltrasonicSensor.TIMEOUT_2-1:
-            print("M2 failed")
+            print("ERROR: Ultrasonic M2 failed")
             return None
         self.last_valid = time.time()
         t_2 = time.time()
