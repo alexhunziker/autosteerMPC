@@ -2,6 +2,7 @@ import time
 from statistics import mean
 
 import cv2
+
 from .second_order_lane_recognizer import SecondOrderLaneRecognizer
 
 times_retrieved_img = []
@@ -12,7 +13,7 @@ times_calculated_lanes = []
 intermediate = time.time()
 
 lane_recognizer = SecondOrderLaneRecognizer()
-cap = cv2.VideoCapture("resources/curve_test.mp4")
+cap = cv2.VideoCapture("resources/lane_curve_test.mp4")
 while cap.isOpened():
     start = time.time()
     _, frame = cap.read()

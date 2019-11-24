@@ -63,7 +63,7 @@ def display_lines(image, lines, rgb):
     return line_image
 
 
-# image = cv2.imread('resources/test_image.jpg')
+# image = cv2.imread('resources/lane_straight_1.jpg')
 # lane_image = np.copy(image)
 # canny_image = canny(lane_image)
 # cropped_image = region_of_interest(canny_image)
@@ -80,7 +80,7 @@ frames = 0
 times_retrieved_img = []
 times_preprocessed = []
 times_calculated_lanes = []
-cap = cv2.VideoCapture("resources/test2.mp4")
+cap = cv2.VideoCapture("resources/lane_straight.mp4")
 while cap.isOpened():
     start = time.time()
     _, frame = cap.read()

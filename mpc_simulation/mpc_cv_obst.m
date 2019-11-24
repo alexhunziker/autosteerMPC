@@ -8,8 +8,8 @@ mpc_cv_o.ControlHorizon = 3;
 mpc_cv_o.Model.Nominal.U = [0;0;0;0];
 mpc_cv_o.Model.Nominal.Y = [0;0;0;0;0;0;0];
 %% specify constraints for MV and MV Rate
-mpc_cv_o.MV(1).Min = -0.785398163397448;
-mpc_cv_o.MV(1).Max = 0.785398163397448;
+mpc_cv_o.MV(1).Min = -0.35;
+mpc_cv_o.MV(1).Max = 0.35;
 mpc_cv_o.MV(1).RateMin = -0.05;
 mpc_cv_o.MV(1).RateMax = 0.05;
 mpc_cv_o.MV(3).Min = 0;
@@ -24,7 +24,7 @@ mpc_cv_o.MV(1).RateMaxECR = 0.01;
 %% specify weights
 mpc_cv_o.Weights.MV = [0.2 0 1 1];
 mpc_cv_o.Weights.MVRate = [5 0.1 1 1];
-mpc_cv_o.Weights.OV = [5 0 1 0 10 1 30];
+mpc_cv_o.Weights.OV = [5 0 2 0 10 1 30];
 mpc_cv_o.Weights.ECR = 100000;
 %% specify simulation options
 options = mpcsimopt();
