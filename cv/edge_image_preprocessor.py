@@ -103,5 +103,5 @@ class EdgeImagePreprocessor(object):
 
 
 if __name__ == "__main__":
-    img = cv2.imread('resources/campus_straight.jpg')
+    img = cv2.imread('resources/straight_5.jpg')
     EdgeImagePreprocessor(show_intermediate_steps=True).process(img)

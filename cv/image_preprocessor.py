@@ -40,14 +40,11 @@ class ImagePreprocessor(object):
 
     @classmethod
     def sobel_edge_detection(cls, lightness):
-        """
-        Getting the edges based on Sobel,
-        assumption: Lightness does differ from road to lane/non road
-        """
+        lightness_denoised = cv2.fastNlMeansDenoising(lightness, searchWindowSize=9, templateWindowSize=5)
         ddepth_datatype = cv2.CV_64F  # Allows to detect both edges, alternatively use cv2.CV8U
-        sobel_x_derivative = cv2.Sobel(lightness, ddepth_datatype, 1, 1)
+        sobel_x_derivative = cv2.Sobel(lightness_denoised, ddepth_datatype, 1, 0)
         absolute_sobel_x = np.absolute(sobel_x_derivative)
-        return np.uint8(255 * absolute_sobel_x / np.max(absolute_sobel_x))
+        return np.uint8(255 * absolute_sobel_x / (np.max(absolute_sobel_x) * 0.5))
 
     def apply_gradient_threshold(self, data):
         """
@@ -84,5 +81,5 @@ class ImagePreprocessor(object):
         plt.show()
 
 if __name__ == "__main__":
-    img = cv2.imread('resources/curve_1.jpg')
+    img = cv2.imread('resources/lane_curve_1.jpg')
     ImagePreprocessor().process(img)

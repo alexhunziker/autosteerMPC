@@ -25,7 +25,8 @@ class SecondOrderLaneRecognizer(object):
         edges_image = self.image_preprocessor.process(img)
         warped_image = self.image_warper.warp(
             edges_image, destination_size=self.destination_size)
-        self.curve_calculator.sliding_window(warped_image)
+        self.curve_calculator.sliding_window(warped_image, left_lane=True)
+        self.curve_calculator.sliding_window(warped_image, left_lane=False)
         self.img = img
         curverad = self.get_curve_radius()
         lane_curvature = np.mean([curverad[0], curverad[1]])
@@ -39,17 +40,17 @@ class SecondOrderLaneRecognizer(object):
         return self.curve_calculator.fit_curve_worldspace(self.img)
 
     def visualize_lane(self):
-        lanes = self.curve_calculator.draw_lanes(self.img)
+        lanes = self.curve_calculator.draw_lanes(self.img, self.image_preprocessor.DEFAULT_SOURCE_ROI)
         curverad = self.get_curve_radius()
         lane_curve = np.mean([curverad[0], curverad[1]])
 
         font = cv2.FONT_HERSHEY_SIMPLEX
         fontColor = (0, 0, 0)
-        fontSize = 0.5
+        fontSize = 1.3
         cv2.putText(lanes, 'Lane Curvature: {:.0f} m'.format(
-            lane_curve), (570, 620), font, fontSize, fontColor, 2)
+            lane_curve), (480, 590), font, fontSize, fontColor, 3)
         cv2.putText(lanes, 'Vehicle offset: {:.4f} m'.format(
-            curverad[2]), (570, 650), font, fontSize, fontColor, 2)
+            curverad[2]), (480, 650), font, fontSize, fontColor, 3)
         return lanes
 
 
@@ -59,15 +60,17 @@ if __name__ == "__main__":
 
     secondOrderLaneRecognizer = None
     if mode == "lane":
-        img = cv2.imread('resources/curve_1.jpg')
+        img = cv2.imread('resources/lane_curve_1.jpg')
         secondOrderLaneRecognizer = SecondOrderLaneRecognizer(
-            debug=True).process(img)
-        # img = cv2.imread('resources/road_with_fixes.jpg')
-        # img = cv2.imread('resources/light_curve_2.jpg')
+            debug=True)
+        secondOrderLaneRecognizer.process(img)
+        # img = cv2.imread('resources/lane_edgecase_1.jpg')
+        # img = cv2.imread('resources/lane_curve_2.jpg')
     if mode == "edge":
-        img = cv2.imread('resources/campus_straight.jpg')
+        img = cv2.imread('resources/straight_5.jpg')
         secondOrderLaneRecognizer = SecondOrderLaneRecognizer(
-            debug=True, destination_size=(800, 600)).process(img)
+            debug=True, destination_size=(800, 600))
+        secondOrderLaneRecognizer.process(img)
     curverad = secondOrderLaneRecognizer.get_curve_radius()
     print(curverad)
     result_img = secondOrderLaneRecognizer.visualize_lane()

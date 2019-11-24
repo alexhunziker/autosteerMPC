@@ -4,5 +4,6 @@
         "iostream": "cpp",
         "xstring": "cpp",
         "cstdlib": "cpp"
-    }
+    },
+    "python.pythonPath": "venv\\Scripts\\python.exe"
 }
