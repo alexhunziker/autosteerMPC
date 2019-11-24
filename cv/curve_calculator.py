@@ -39,8 +39,8 @@ class CurveCalculator(object):
         if self.mode == "B" or self.mode == "R":
             self.sliding_window(img, False, n_windows, window_margin, minpix, draw_windows)
 
-    def sliding_window(self, img, left_lane, n_windows=9, window_margin=150,
-                        minimum_pixels=1, draw_windows=True):
+    def sliding_window(self, img, left_lane=False, n_windows=9, window_margin=150,
+                       minimum_pixels=20, draw_windows=True):
         image_height = img.shape[0]
         window_height = np.int(image_height / n_windows)
         y_range = np.linspace(0, image_height - 1, image_height)
@@ -65,6 +65,7 @@ class CurveCalculator(object):
 
         current_x_position = starting_point
         lane_pixels = []
+        fail_one = False
         for window in range(n_windows):
             # Calculate image boundries
             window_y_lower_boundry = image_height - (window + 1) * window_height
@@ -88,6 +89,16 @@ class CurveCalculator(object):
             # Recenter next window (based on mean)
             if len(non_zero_pixels) > minimum_pixels:
                 current_x_position = np.int(np.mean(nonzero_x_pixels[non_zero_pixels]))
+                print("Recenter next. Pixels found", len(non_zero_pixels))
+            elif window == 0:
+                fail_one = True
+                print("Window one nothing detected. Do not recenter")
+            elif fail_one and window == 1:
+                print("No line. Break loop")
+                break
+            else:
+                print("Do not recenter")
+
 
         lane_pixels = np.concatenate(lane_pixels)
         if len(lane_pixels) < minimum_pixels * (n_windows / 1.5):
@@ -104,20 +115,10 @@ class CurveCalculator(object):
         # Fit second order polinomial
         fit = np.polyfit(y_lane_pixels, x_lane_pixels, 2)
 
-        # For averaging, not implemented
-        # if left_lane:
-        #     for i in range(3):
-        #         self.left[i].pop()
-        #         self.left[i].append(fit[i])
-        # else:
-        #     for i in range(3):
-        #         self.right[i].pop()
-        #         self.right[i].append(fit[i])
-
 
         # Generate x and y values for plotting
         if left_lane: self.left_fitted_curve = fit[0] * y_range ** 2 + fit[1] * y_range + fit[2]
-        else: self.right_fitted_curve = fit[0] * y_range ** 2 + fit[1] * y_range + fit[2]
+        self.right_fitted_curve = fit[0] * y_range ** 2 + fit[1] * y_range + fit[2]
 
         # Plot lane
         if CurveCalculator.DEBUG:
@@ -163,7 +164,7 @@ class CurveCalculator(object):
         fitted_curve = np.polyfit(curve_pixels_y * self.meters_per_pixel_y, x_points * self.meters_per_pixel_x, 2)
         # Calculate radius of curve
         curve_radius = ((1 + (2 * fitted_curve[0] * lowest_y_pixel * self.meters_per_pixel_y + fitted_curve[
-            1]) ** 2) ** 1.5) / np.absolute((2 * fitted_curve[0]))
+            1]) ** 2) ** 1.5) / np.absolute((2 * fitted_curve[0])) * -np.sign(fitted_curve[0])
         current_x = (fitted_curve[0] * (img.shape[0] * self.meters_per_pixel_y) ** 2 + fitted_curve[1] * (
                     img.shape[0] * self.meters_per_pixel_y) + fitted_curve[2])
         return curve_radius, current_x
@@ -176,14 +177,16 @@ class CurveCalculator(object):
         right = None
         if self.left_fitted_curve is not None:
             left = np.int_(np.array([np.transpose(np.vstack([self.left_fitted_curve, ploty]))]))
-            cv2.polylines(color_img, np.int_(left), False, (255, 0, 0), 20);
+            cv2.polylines(color_img, np.int_(left), False, (255, 0, 0), 20)
         if self.right_fitted_curve is not None:
             right = np.int_(np.array([np.flipud(np.transpose(np.vstack([self.right_fitted_curve, ploty])))]))
-            cv2.polylines(color_img, np.int_(right), False, (0, 225, 0), 20);
+            cv2.polylines(color_img, np.int_(right), False, (0, 225, 0), 20)
        
         if left is not None and right is not None:
             points = np.hstack((left, right))
             cv2.fillPoly(color_img, np.int_(points), (0, 200, 255))
+            cv2.polylines(color_img, np.int_(left), False, (255, 0, 0), 20)
+            cv2.polylines(color_img, np.int_(right), False, (0, 225, 0), 20)
 
         inv_perspective = ImageWarper().inv_perspective_warp(color_img, dst_size=(img.shape[1], img.shape[0]),
                                                              dst=roi)
