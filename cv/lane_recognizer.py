@@ -43,6 +43,7 @@ class LaneRecognizer(object):
             time.sleep(0.1)
             return None
 
+        print("INFO: Curve Radius", self.curve_radius, "offset", self.lateral_deviation)
         if self.debug:
             result = self.second_order_recognizer.visualize_lane()
             cv2.imshow('result', result)

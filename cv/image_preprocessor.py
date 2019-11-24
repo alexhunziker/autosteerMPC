@@ -55,19 +55,12 @@ class ImagePreprocessor(object):
         return gradient_binary
 
     def apply_saturation_gradient(self, data):
-        """
-        If the road is dark, it will have low saturation
-        TODO: Will we drive on light brown stones? then this assumption sucks
-        """
+        # Low saturation is assumed for dark roads
         saturation_binary = np.zeros_like(data)
         saturation_binary[(data >= self.saturation_threshold[0]) & (data <= self.saturation_threshold[1])] = 1
         return saturation_binary
 
     def combine_binaries(self, binary_one, binary_two):
-        """
-        Combines two binaries by OR operator
-        TODO: in general, this np.zeros_like is stupid, i guess we can do this directly
-        """
         combined_binary = np.zeros_like(binary_one)
         combined_binary[(binary_one == 1) | (binary_two == 1)] = 1
         return combined_binary

@@ -9,7 +9,7 @@ from sensor_fuser import SensorFuser
 
 
 class Coordinator(object):
-    STEP_TIME = 0.1
+    STEP_TIME = 0.2
 
     def __init__(self, mock_actuator=False):
         self.health_checker = HealthChecker()
@@ -53,8 +53,8 @@ class Coordinator(object):
 
 
 if __name__ == "__main__":
-    coordinator = Coordinator(mock_actuator=True)
-    coordinator.start_trip("0xa", "0xab")
+    coordinator = Coordinator(mock_actuator=False)
+    coordinator.start_trip("0x4", "0x7", use_cv=False)
     time.sleep(20)
-    coordinator.stop_system()
+    #coordinator.stop_system()
 

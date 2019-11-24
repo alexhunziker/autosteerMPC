@@ -74,20 +74,25 @@ class SensorFuser(object):
     def get_distance(self, parameters):
         ultrasonic_dist = self.ultrasonic.retrieve_state()
         lidar_dist = self.lidar.getDistanceForAngle(ctypes.c_double(0))-5
-        if ultrasonic_dist is None or ultrasonic_dist > 500:
+        lidar_time = self.lidar.getLastValidForAngle(0)
+        if ultrasonic_dist is None and time.time()-lidar_time>1.0:
+            print("WARN: No reliable distance information, assuming 0")
+            parameters.distance = 0
+        elif ultrasonic_dist is None or ultrasonic_dist > 450:
             parameters.distance = lidar_dist
+            parameters.distance_timestamp = lidar_time
+        elif time.time()-lidar_time>1.0:
+            parameters.distance = ultrasonic_dist
             parameters.distance_timestamp = self.ultrasonic.last_valid
         else:
             parameters.distance = min(lidar_dist, ultrasonic_dist)
             if lidar_dist < ultrasonic_dist:
                 if(self.verbose):
                     print("DEBUG: Taking lidar distance of ", lidar_dist)
-                parameters.distance = lidar_dist
                 parameters.distance_timestamp = self.lidar.getLastValidForAngle(0)
             else:
                 if(self.verbose):
                     print("DEBUG: Taking ultrasonic distance of ", ultrasonic_dist)
-                parameters.distance = ultrasonic_dist
                 parameters.distance_timestamp = self.ultrasonic.last_valid
 
     # TODO: LIDAR class, let's see if this makes sense. Also GPS version only a ce moment la.

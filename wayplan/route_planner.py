@@ -1,4 +1,5 @@
 import math
+import random
 
 from .data_loader import DataLoader
 from .result_writer import ResultWriter
@@ -6,7 +7,8 @@ from .result_writer import ResultWriter
 
 class RoutePlanner(object):
     def __init__(self):
-        self.edges = DataLoader("../wayplan/resources/way_graph_raw.txt").load()
+        #self.edges = DataLoader("../wayplan/resources/way_graph_raw.txt").load()
+        self.edges = DataLoader("../wayplan/resources/mini_map_ch.txt").load()
 
     def calculate(self, start: str, destination: str):
         best_destination_weight = math.inf
@@ -16,7 +18,7 @@ class RoutePlanner(object):
 
         while len(open_edges) > 0:
             best_open_idx = self.find_best_open(open_edges)
-            if not best_open_idx:
+            if best_open_idx is None:
                 break
             best_open = open_edges.pop(best_open_idx)
 
@@ -51,4 +53,14 @@ class RoutePlanner(object):
         return start_edges
 
 if __name__ == "__main__":
-    RoutePlanner().calculate("0x1d", "0x1b0")
+    for i in range(20):
+        print("Calculating route", i)
+        p1 = str(hex(int(random.random()*463)))
+        p2 = str(hex(int(random.random()*463)))
+        print("...from point", p1, "to", p2)
+        try:
+            result = RoutePlanner().calculate(p1, p2)
+            ResultWriter('../target_trajectory'+str(i)+'.txt').write(result)
+        except:
+            print("No valid route found")
+            i = i-1

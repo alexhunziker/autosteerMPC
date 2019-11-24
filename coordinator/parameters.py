@@ -4,24 +4,24 @@ import time
 class Parameters(object):
     def __init__(self):
         self.distance = 500
-        self.distance_timestamp = None
+        self.distance_timestamp = time.time()
 
         self.gps = {"lat": 0, "lon": 0, "altitude": None, "speed": None, "yaw": None, "yaw_rate": None}
-        self.gps_timestamp = None
+        self.gps_timestamp = time.time()
 
         self.next_target = (0, 0)
 
         self.lane_curvature = None
         self.lateral_offset = None
-        self.cv_timestamp = None
+        self.cv_timestamp = time.time()
 
         self.yaw_rate = None
 
         self.yaw_target = 0
-        self.yaw_target_timestamp = None
+        self.yaw_target_timestamp = time.time()
 
         self.speed = 0.0
-        self.speed_timestamp = None
+        self.speed_timestamp = time.time()
 
     def update_target_yaw(self): # TODO: Probably not needed anymore
         try:
