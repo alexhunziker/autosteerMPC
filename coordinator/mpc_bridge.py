@@ -11,14 +11,12 @@ class MPCBridge(object):
     MPC_SO_GPS_UNCONSTR = "../mpc_implementation/build/libmpc_gps_unconstr.so"
     MPC_SO_GPS_OBST = "../mpc_implementation/build/libmpc_gps_obst.so"
 
-    LAT_FACTOR = 70_000 # TODO: Better Approximation 
-    LON_FACTOR = 111_000
-    LAT_OFFSET = 50.128798
-    LON_OFFSET = 8.667482
+    LAT_FACTOR = 111_320            # approximation
+    LON_FACTOR = 40_075_000/360
 
     CRUISING_VELOCITY = 4.0
 
-    def __init__(self, silent=False, simulation_mode=False, debug=True):
+    def __init__(self, silent=False, simulation_mode=False, debug=False):
         self.silent = silent
         self.simulation_mode = simulation_mode
         self.debug = debug
@@ -36,12 +34,12 @@ class MPCBridge(object):
         self.schwimm = 0.0
 
     @classmethod
-    def lat_transform(cls, x):
-        return (x-cls.LAT_OFFSET)*cls.LAT_FACTOR
+    def lat_transform(cls, x, x_ref):
+        return (x-x_ref)*cls.LAT_FACTOR
 
     @classmethod
-    def lon_transform(cls, x):
-        return (x-cls.LON_OFFSET)*cls.LON_FACTOR
+    def lon_transform(cls, x, x_ref):
+        return (x-x_ref)*cls.LON_FACTOR
 
     @classmethod
     def calculate_time_to_collision(cls, distance, speed):
@@ -65,6 +63,8 @@ class MPCBridge(object):
     def calculate_target_yaw(cls, x_target, y_target, x_current, y_current, yaw):
         yaw_target = math.atan2(y_target - y_current, x_target - x_current) 
         # North is 0
+        print("VERBOSE: x y, current target:", x_current, y_current, x_target, y_target)
+        print("VERBOSE: yaw:", yaw)
 
         # Adjust so we actually take shortest diff
         yaw_diff = abs(yaw - yaw_target)
@@ -87,10 +87,10 @@ class MPCBridge(object):
         
     def request_step(self, parameters):
         time_to_collision = MPCBridge.calculate_time_to_collision(parameters.distance/100, parameters.speed)
-        x_target = MPCBridge.lat_transform(parameters.next_target[0])
-        y_target = MPCBridge.lon_transform(parameters.next_target[1])
-        x_current = MPCBridge.lat_transform(parameters.gps["lat"])
-        y_current = MPCBridge.lon_transform(parameters.gps["lon"])
+        x_target = 0 #MPCBridge.lat_transform(parameters.next_target[0])
+        y_target = 0 #MPCBridge.lon_transform(parameters.next_target[1])
+        x_current = MPCBridge.lat_transform(parameters.gps["lat"], parameters.next_target[0])
+        y_current = MPCBridge.lon_transform(parameters.gps["lon"], parameters.next_target[1])
         v_target = None
         cv_available = False
         gps_available = False

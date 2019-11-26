@@ -94,17 +94,17 @@ mpc<NR_OF_STATES, NR_OF_CONTROLS, PREDICTION_HORIZON> initialize_mpc_object(int 
 
     // Matrix Q: Costs of divergence in states
     matrix<double, NR_OF_STATES, 1> Q;
-    Q = 2, 0, 0, 1;
+    Q = 1.5, 0, 0, 1;
 
     // Matrix R: Costs of controls
     matrix<double, NR_OF_CONTROLS, 1> R;
-    R = 0.3, 0.2, 0.2; // Dlib does not allwo to punish rates
+    R = 0.6, 0.2, 0.2; // Dlib does not allwo to punish rates
 
     // upper, lower: Control limits
     matrix<double, NR_OF_CONTROLS, 1> upper;
     matrix<double, NR_OF_CONTROLS, 1> lower;
-    upper = 0.5, 1, 1;
-    lower = -0.5, 0, 0;
+    upper = 0.2, 1, 1;
+    lower = -0.2, 0, 0;
 
     mpc<NR_OF_STATES, NR_OF_CONTROLS, PREDICTION_HORIZON> mpc_controller(A, B, C, Q, R, lower, upper);
 
