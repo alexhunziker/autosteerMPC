@@ -1,12 +1,15 @@
 import time
 import threading
 import datetime
+import sys
+import os
 
 from actuator_bridge import ActuatorBridge
 from health_checker import HealthChecker
 from mpc_bridge import MPCBridge
 from path_manager import PathManager
 from sensor_fuser import SensorFuser
+from impulses import Impulses
 
 
 class Coordinator(object):
@@ -55,8 +58,20 @@ class Coordinator(object):
 
 
 if __name__ == "__main__":
-    coordinator = Coordinator(mock_actuator=False)
+    mock_actuator=False
+    coordinator = Coordinator(mock_actuator=mock_actuator)
     coordinator.start_trip("0x4", "0x7", use_cv=False)
-    time.sleep(20)
-    #coordinator.stop_system()
+    try:
+        while True:
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        print("INFO: Shutting down")
+        ActuatorBridge(mock=mock_actuator).send(Impulses(0, 0, 0))
+        coordinator.stop_system()
+        time.sleep(1)
+        ActuatorBridge(mock=mock_actuator).send(Impulses(0, 0, 0))
+        try:
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)
 
