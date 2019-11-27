@@ -98,7 +98,7 @@ mpc<NR_OF_STATES, NR_OF_CONTROLS, PREDICTION_HORIZON> initialize_mpc_object(int 
 
     // Matrix R: Costs of controls
     matrix<double, NR_OF_CONTROLS, 1> R;
-    R = 0.6, 0.2, 0.2; // Dlib does not allwo to punish rates
+    R = 5, 0.2, 0.2; // Dlib does not allwo to punish rates
 
     // upper, lower: Control limits
     matrix<double, NR_OF_CONTROLS, 1> upper;

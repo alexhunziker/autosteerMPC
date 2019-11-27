@@ -6,7 +6,7 @@ from wayplan.route_planner import RoutePlanner
 from health_checker import HealthChecker 
 
 class PathManager:
-    GPS_PRECISION = 5e-4    # Empirical value
+    GPS_PRECISION = 5e-5    # Empirical value
 
     def __init__(self, verbose=False):
         self.route_planner = RoutePlanner()
@@ -22,10 +22,14 @@ class PathManager:
     def potentially_update_next(self, position):
         if (abs(position["lat"] - float(self.route[0][0])) < PathManager.GPS_PRECISION and
                 abs(position["lon"] - float(self.route[0][1])) < PathManager.GPS_PRECISION):
-            print("INFO: Next way point loaded.")
             self.health_checker.flash_yellow()
             if len(self.route)>1:
                 self.route.pop(0)
+            else:
+                print("INFO: Destination reached.")
+            print("INFO: Next way point loaded:", self.route[0][0], self.route[0][1])
+            if self.verbose:
+                print("DEBUG: Remaining route is:", self.route)
         else:
             if self.verbose:
                 print("DEBUG: Distances to next are", abs(position["lat"] - float(self.route[0][0])), abs(position["lon"] - float(self.route[0][1])))

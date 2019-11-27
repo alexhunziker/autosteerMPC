@@ -10,7 +10,7 @@ import gps
 class GPSSensor(object):
     HISTORY_THRESHOLD = 2
     
-    def __init__(self, verbose=False, averaging=True):
+    def __init__(self, verbose=False, averaging=False):
         self.stop = False
         self.verbose = verbose
         self.averaging = averaging
@@ -35,8 +35,8 @@ class GPSSensor(object):
                 "yaw": gpsd.fix.track,
                 "yaw_rate": gpsd.fix.track - self.gps["yaw"]
             }
+            gps_received = self.satitize_measurements(gps_received)
             if self.averaging:
-                gps_received = self.satitize_measurements(gps_received)
                 gps_received = self.average_measurements(gps_received)
             if gps_received["lat"] > 0:
                 self.gps = gps_received
@@ -81,7 +81,7 @@ class GPSSensor(object):
         if self.history == [] or (time.time()-self.last_valid)>GPSSensor.HISTORY_THRESHOLD:
             if self.verbose:
                 print("DEBUG: GPS history reset")
-            self.history = [current_state]
+            self.history = [current_state, current_state, current_state]
         else:
             self.history.pop(0)
             self.history.append(current_state)  # here we determmine size of history
