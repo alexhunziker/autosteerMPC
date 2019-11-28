@@ -38,6 +38,7 @@ class Coordinator(object):
         self.health_checker.startup_done()
 
     def main_loop(self):
+        time.sleep(2)       # Wait until Arduino is ready
         while self.active:
             print("INFO: System time is", str(datetime.datetime.now()))
             loop_start = time.time()
