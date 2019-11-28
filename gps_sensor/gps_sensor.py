@@ -35,6 +35,13 @@ class GPSSensor(object):
                 "yaw": gpsd.fix.track,
                 "yaw_rate": gpsd.fix.track - self.gps["yaw"]
             }
+            # invalidate bad measurements
+            if gpsd.pdop>5 or gpsd.pdop<1:
+                gps_received["lat"] = 0
+                gps_received["lon"] = 0
+                gps_received["yaw"] = 0
+                gps_received["speed"] = 0
+                print("WARN: GPS measurement inaccurate and therefore rejected.")
             gps_received = self.satitize_measurements(gps_received)
             if self.averaging:
                 gps_received = self.average_measurements(gps_received)
@@ -65,7 +72,7 @@ class GPSSensor(object):
             print("ERROR: No yaw (track) recieved, assumed 0")
 
         # Only use a non-zero yaw rate if last and current measurement are non-zero
-        if self.last_raw_yaw == 0.0 and current_state["yaw"]!=0.0:
+        if self.last_raw_yaw == 0.0 or current_state["yaw"]==0.0:
             current_state["yaw_rate"] = 0
         self.last_raw_yaw = current_state["yaw"]
 

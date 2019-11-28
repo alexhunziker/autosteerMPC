@@ -20,8 +20,6 @@ class Parameters(object):
         self.yaw_target = 0
         self.yaw_target_timestamp = time.time()
 
-        self.speed = 0.0
-        self.speed_timestamp = time.time()
 
     def update_target_yaw(self): # TODO: Probably not needed anymore
         try:
@@ -36,8 +34,7 @@ class Parameters(object):
         state_string += "Next waypoint " + str(self.next_target) + "\n"
         state_string += "Lane curvature " + str(self.lane_curvature) + "\n"
         state_string += "Lateral offset " + str(self.lateral_offset) + "\n"
-        state_string += "speed " + str(self.speed) + "m/s" + "\n"
-        state_string += "yaw rate " + str(self.speed) + " rad/s" + "\n"
+        state_string += "speed " + str(self.gps["speed"]) + "m/s" + "\n"
         return state_string
 
 

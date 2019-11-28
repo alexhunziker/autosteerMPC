@@ -3,6 +3,7 @@ import sys
 import time
 import threading
 import multiprocessing
+import math
 sys.path.append('../')
 
 from gps_sensor.gps_sensor import GPSSensor
@@ -55,7 +56,7 @@ class SensorFuser(object):
             parameters.gps = self.gps.retrieve_state()
             parameters.gps_timestamp = self.gps.last_valid
         else:
-            parameters.speed = self.fake_speed
+            parameters.gps["speed"] = self.fake_speed
 
         if self.use_cv:
             self.cv_worker.retrieve_state()
@@ -69,7 +70,10 @@ class SensorFuser(object):
         self.ultrasonic.stop_measuring()
         self.gps.stop_measuring()
         self.lidar.stop_measuring()
-        self.cv_worker.stop()
+        try:
+            self.cv_worker.stop()
+        except:
+            print("WARN: CV worker could not be stopped")
         #self.cv_worker.join()
 
     def get_distance(self, parameters):
@@ -84,8 +88,9 @@ class SensorFuser(object):
         if ultrasonic_dist is None and time.time()-lidar_time>1.0:          # No valid measurements
             print("WARN: No reliable distance information, assuming 0")
             parameters.distance = 0
-        elif ultrasonic_dist > 450 and (lidar_dist > 999 or time.time()-lidar_time>1.0):  # No obstacle detected
+        elif ultrasonic_dist > 450 and (lidar_dist > 1200 or time.time()-lidar_time>1.0):  # No obstacle detected
             print("INFO: No obstacle detected")
+            print("INFO: lidar time diff", time.time()-lidar_time, "with", time.time(), lidar_time)
             parameters.distance_timestamp = time.time()
             parameters.distance = 1_200
         elif ultrasonic_dist is None or ultrasonic_dist > 450:              # Only lidar signal valid
@@ -110,15 +115,17 @@ class SensorFuser(object):
     def adjust_distance_for_target_direction(self, parameters):
         distance_target_yaw_direction = self.lidar.getDistanceForAngle(
             ctypes.c_double(parameters.yaw_target))
-        if parameters.speed / (distance_target_yaw_direction+SensorFuser.EPS) > 3:
+        if parameters.gps["speed"] / (distance_target_yaw_direction+SensorFuser.EPS) > 3:
             return
 
+        yaw_target = parameters.yaw_target if parameters.yaw_target<math.pi else -2*math.pi + parameters.yaw_target
         probe_angle = parameters.yaw_target
         while(abs(probe_angle) > 0.4):
-            probe_distance_coll = parameters.speed / \
+            probe_distance_coll = parameters.gps["speed"] / \
                 self.lidar.getDistanceForAngle(ctypes.c_double(parameters.probe_angle))
             if time.time()-self.lidar.getLastValidForAngle(ctypes.c_double(parameters.probe_angle)) < self.LIDAR_CUTOFF and (probe_distance_coll > 3 or probe_distance_coll > distance_target_yaw_direction*1.5):  # TODO: Las condition sensible?  also define cutoff
                 parameters.yaw_target = probe_angle
+                print("INFO: Yaw target corrected by 360 lidar to", parameters.yaw_target)
                 break
             if(parameters.yaw_target) > 0:
                 probe_angle -= 0.02

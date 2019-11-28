@@ -14,7 +14,7 @@ class MPCBridge(object):
     LAT_FACTOR = 111_320            # approximation
     LON_FACTOR = 40_075_000/360
 
-    CRUISING_VELOCITY = 3.0
+    CRUISING_VELOCITY = 2.0
 
     def __init__(self, silent=False, simulation_mode=False, debug=False):
         self.silent = silent
@@ -51,9 +51,10 @@ class MPCBridge(object):
     def calculate_target_speed(cls, x_target, y_target, x_current, y_current, yaw_term):
         diff_x = x_current - x_target
         diff_y = y_current - y_current
-        distance_speed = pow(diff_x**2 + diff_y**2, 0.5) / 3
+        #distance_speed = pow(diff_x**2 + diff_y**2, 0.5) / 3
+        distance_speed = cls.CRUISING_VELOCITY
 
-        yaw_speed = max(0, (cls.CRUISING_VELOCITY - 3 * yaw_term)) + 1.5
+        yaw_speed = max(0, (cls.CRUISING_VELOCITY - 3 * yaw_term)) + 1.0
         current_appropriate_speed = min(yaw_speed, distance_speed)
         target_speed = max(0, min(current_appropriate_speed, cls.CRUISING_VELOCITY))
         print("DEBUG: Target speed", target_speed, "yaw unfiltered speed", (cls.CRUISING_VELOCITY - 3 * yaw_term) + 1.5, "distance speed", distance_speed)
@@ -61,18 +62,22 @@ class MPCBridge(object):
 
     @classmethod
     def calculate_target_yaw(cls, x_target, y_target, x_current, y_current, yaw):
+        yaw = yaw/180*3.14
         yaw_target = math.atan2(y_target - y_current, x_target - x_current) 
+        if yaw_target<0:
+            yaw_target = 2*math.pi+yaw_target
         # North is 0
         print("VERBOSE: x y, current target:", x_current, y_current, x_target, y_target)
-        print("VERBOSE: yaw current:", yaw, "and calculated is:", yaw_target)
+        print("VERBOSE: yaw current:", yaw , "and calculated target is:", yaw_target)
 
         # Adjust so we actually take shortest diff
         yaw_diff = abs(yaw - yaw_target)
-        if (yaw_diff > math.pi):
-            if (yaw_target < 0 and yaw > 0):
+        if (yaw_diff > math.pi) and yaw != 0.0:
+            if (yaw_target < math.pi and yaw > math.pi):
                 yaw_target = yaw_target + 2 * math.pi
-            if (yaw_target > 0 and yaw < 0):
+            if (yaw_target > math.pi and yaw < math.pi):
                 yaw_target = yaw_target - 2 * math.pi
+        print("VERBOSE: sanitized target yaw:", yaw_target)
         return yaw_target 
 
     @classmethod
@@ -87,7 +92,8 @@ class MPCBridge(object):
             return target
         
     def request_step(self, parameters):
-        time_to_collision = MPCBridge.calculate_time_to_collision(parameters.distance/100, parameters.speed)
+        time_to_collision = MPCBridge.calculate_time_to_collision(parameters.distance/100, parameters.gps["speed"])
+        print("DEBUG: Time to collision is", time_to_collision)
         x_target = 0 #MPCBridge.lat_transform(parameters.next_target[0])
         y_target = 0 #MPCBridge.lon_transform(parameters.next_target[1])
         x_current = MPCBridge.lat_transform(parameters.gps["lat"], parameters.next_target[0])
@@ -96,6 +102,7 @@ class MPCBridge(object):
         cv_available = False
         gps_available = False
         if not math.isnan(parameters.lane_curvature):
+            print("--------------LANE CURVATURE", parameters.lane_curvature)
             yaw_rate_target = MPCBridge.calculate_yaw_rate_target(parameters.gps["speed"], parameters.lane_curvature)
             parameters.gps["yaw"] = self.propagate_or_neutralize(parameters.gps["yaw"], parameters.gps["speed"], 0)
             parameters.gps["yaw_rate"] = self.propagate_or_neutralize(parameters.gps["yaw_rate"], parameters.gps["speed"], yaw_rate_target)
@@ -208,7 +215,7 @@ class MPCBridge(object):
         self.last_controls = Impulses(planned_impulses[0], planned_impulses[2], planned_impulses[3])
 
     def emergency_break_condition(self, parameters):
-        return (parameters.distance < 400) and (parameters.distance < 2 * parameters.speed) or parameters.distance<100
+        return (parameters.distance < 400) and (parameters.distance < 2 * parameters.gps["speed"]) or parameters.distance<100
 
     def apply_emergency_break(self, impulses):
         impulses.breaks = 1.0
