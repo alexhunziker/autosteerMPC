@@ -79,43 +79,47 @@ class SensorFuser(object):
     def get_distance(self, parameters):
         ultrasonic_dist = self.ultrasonic.retrieve_state()
         lidar_dist = self.lidar.getDistanceForAngle(ctypes.c_double(0))-5
-        lidar_time = self.lidar.getLastValidForAngle(0)
+        lidar_time = self.lidar.getLastValidForAngle(ctypes.c_double(0))
+        lidar_age = time.time() - lidar_time
         # If Lidar distance is 0, this means it usually means no obstacle detected
         if lidar_dist == 0.0:
             lidar_dist = 1_000
 
-        print("DEBUG: Lidar and ultrasonic dist", lidar_dist, ultrasonic_dist)
-        if ultrasonic_dist is None and time.time()-lidar_time>1.0:          # No valid measurements
+        print("INFO: Lidar and ultrasonic dist", round(lidar_dist), round(ultrasonic_dist))
+        if lidar_age>1.0:
+            print("INFO: Lidar distance outdated, age is", round(lidar_age, 1))
+        if ultrasonic_dist is None and lidar_age>1.0:          # No valid measurements
             print("WARN: No reliable distance information, assuming 0")
             parameters.distance = 0
-        elif ultrasonic_dist > 450 and (lidar_dist > 1200 or time.time()-lidar_time>1.0):  # No obstacle detected
-            print("INFO: No obstacle detected")
-            print("INFO: lidar time diff", time.time()-lidar_time, "with", time.time(), lidar_time)
+        elif ultrasonic_dist > 450 and (lidar_dist > 1200 or lidar_age>1.0):  # No obstacle detected
+            print("INFO: No obstacle detected, assuming free road")
             parameters.distance_timestamp = time.time()
             parameters.distance = 1_200
         elif ultrasonic_dist is None or ultrasonic_dist > 450:              # Only lidar signal valid
-            print("INFO: Lidar distance only of", lidar_dist)
+            if(self.verbose):
+                print("INFO: Lidar distance only")
             parameters.distance = lidar_dist
             parameters.distance_timestamp = lidar_time
-        elif time.time()-lidar_time>1.0:                                    # Only ultrasonic signal valid
-            print("INFO: Ultrasonic distance only of", ultrasonic_dist)
+        elif lidar_age>1.0:                                    # Only ultrasonic signal valid
+            if(self.verbose):
+                print("INFO: Lidar is outdated, taking ultrasionic")
             parameters.distance = ultrasonic_dist
             parameters.distance_timestamp = self.ultrasonic.last_valid
         else:                                                               # Both sensors valid
             parameters.distance = min(lidar_dist, ultrasonic_dist)
             if lidar_dist < ultrasonic_dist:
-                if(self.verbose or True):
-                    print("DEBUG: Taking lidar distance of ", lidar_dist)
-                parameters.distance_timestamp = self.lidar.getLastValidForAngle(0)
+                if(self.verbose):
+                    print("DEBUG: Taking shorter lidar distance of ", lidar_dist)
+                parameters.distance_timestamp = lidar_time
             else:
-                if(self.verbose or True):
-                    print("DEBUG: Taking ultrasonic distance of ", ultrasonic_dist)
+                if(self.verbose):
+                    print("DEBUG: Taking shorter ultrasonic distance of ", ultrasonic_dist)
                 parameters.distance_timestamp = self.ultrasonic.last_valid
         
     def adjust_distance_for_target_direction(self, parameters):
         distance_target_yaw_direction = self.lidar.getDistanceForAngle(
             ctypes.c_double(parameters.yaw_target))
-        if parameters.gps["speed"] / (distance_target_yaw_direction+SensorFuser.EPS) > 3:
+        if parameters.gps["speed"] is not None and parameters.gps["speed"] / (distance_target_yaw_direction+SensorFuser.EPS) > 3:
             return
 
         yaw_target = parameters.yaw_target if parameters.yaw_target<math.pi else -2*math.pi + parameters.yaw_target

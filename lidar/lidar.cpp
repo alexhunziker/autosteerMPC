@@ -14,7 +14,7 @@ bool stop = false;
 
 bool debug = true;
 double distances[160];
-int last_valid[160];
+double last_valid[160];
 
 // extern C allows to use C-Linkage for next scope, required for ctypes,
 extern "C"
@@ -40,11 +40,15 @@ extern "C"
         return distances[index] * 100;
     }
 
-    int getLastValidForAngle(double angleRad)
+    double getLastValidForAngle(double angleRad)
     {
         // Returns time in s since UTC epoch
         int index = getIndexForAngle(angleRad);
-        return last_valid[index] / 100000000;
+        if (debug)
+        {
+            cout << "DEBUG: Lidar timestamp " << (int)last_valid[index] << " for angle " << angleRad << "\n";
+        }
+        return last_valid[index];
     }
 
     void adjustedAngleAndDistance(double *angle, double *distance)
@@ -92,7 +96,7 @@ void LaserScanCallback(const LaserScan &scan)
             {
                 int idx = getIndexForAngle(angle);
                 distances[idx] = distance;
-                last_valid[idx] = scan.system_time_stamp;
+                last_valid[idx] = (double)scan.system_time_stamp / 1000000000.0;
                 stored++;
             }
         }
