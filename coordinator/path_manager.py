@@ -6,7 +6,7 @@ from wayplan.route_planner import RoutePlanner
 from health_checker import HealthChecker 
 
 class PathManager:
-    GPS_PRECISION = 5e-5    # Empirical value
+    GPS_PRECISION = 5e-5    # Empirical value (about GPS precision)
 
     def __init__(self, verbose=False):
         self.route_planner = RoutePlanner()
