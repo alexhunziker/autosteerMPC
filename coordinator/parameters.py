@@ -20,8 +20,9 @@ class Parameters(object):
         self.yaw_target = 0
         self.yaw_target_timestamp = time.time()
 
-
-    def update_target_yaw(self): # TODO: Probably not needed anymore
+    # TODO: Duplication, this is also done in MPCBridge, however it should be in neither of these places
+    # move to SensorFuser
+    def update_target_yaw(self): 
         try:
             self.yaw_target = math.atan2(self.gps["lon"] - self.next_target[1], self.gps["lat"] - self.next_target[0])
             self.yaw_target_timestamp = time.time()

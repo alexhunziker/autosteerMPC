@@ -10,4 +10,5 @@ class NameGenerator(object):
             name = str(hex(self.counter))
             self.counter += 1
             self.name_dict[point] = name
+            print("DEBUG: Coordinate loaded:", name, point)
             return name

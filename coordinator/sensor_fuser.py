@@ -127,7 +127,8 @@ class SensorFuser(object):
         while(abs(probe_angle) > 0.4):
             probe_distance_coll = parameters.gps["speed"] / \
                 self.lidar.getDistanceForAngle(ctypes.c_double(parameters.probe_angle))
-            if time.time()-self.lidar.getLastValidForAngle(ctypes.c_double(parameters.probe_angle)) < self.LIDAR_CUTOFF and (probe_distance_coll > 3 or probe_distance_coll > distance_target_yaw_direction*1.5):  # TODO: Las condition sensible?  also define cutoff
+            if time.time()-self.lidar.getLastValidForAngle(ctypes.c_double(parameters.probe_angle)) < self.LIDAR_CUTOFF and (probe_distance_coll > 3 or \
+                    probe_distance_coll > distance_target_yaw_direction*1.5): 
                 parameters.yaw_target = probe_angle
                 print("INFO: Yaw target corrected by 360 lidar to", parameters.yaw_target)
                 break

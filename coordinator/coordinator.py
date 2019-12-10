@@ -52,9 +52,9 @@ class Coordinator(object):
             sleep_time = Coordinator.STEP_TIME - (time.time() - loop_start)
             if sleep_time > 0:
                 time.sleep(sleep_time)
-                print("DEBUG: Main loop took", 0.2 - sleep_time)
+                print("DEBUG: Main loop took", Coordinator.STEP_TIME - sleep_time)
             else:
-                print("WARN: Main loop took long to process: ", 0.2 - sleep_time)
+                print("WARN: Main loop took long to process: ", Coordinator.STEP_TIME - sleep_time)
         self.sensor_fuser.stop()
 
 

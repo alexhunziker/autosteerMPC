@@ -93,8 +93,8 @@ class MPCBridge(object):
     def request_step(self, parameters):
         time_to_collision = MPCBridge.calculate_time_to_collision(parameters.distance/100, parameters.gps["speed"])
         print("DEBUG: Time to collision is", time_to_collision)
-        x_target = 0 #MPCBridge.lat_transform(parameters.next_target[0])
-        y_target = 0 #MPCBridge.lon_transform(parameters.next_target[1])
+        x_target = 0
+        y_target = 0
         x_current = MPCBridge.lat_transform(parameters.gps["lat"], parameters.next_target[0])
         y_current = MPCBridge.lon_transform(parameters.gps["lon"], parameters.next_target[1], parameters.gps["lat"])
         v_target = None
