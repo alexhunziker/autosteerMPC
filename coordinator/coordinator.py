@@ -52,24 +52,28 @@ class Coordinator(object):
             sleep_time = Coordinator.STEP_TIME - (time.time() - loop_start)
             if sleep_time > 0:
                 time.sleep(sleep_time)
-                print("DEBUG: Main loop took", 0.1 - sleep_time)
+                print("DEBUG: Main loop took", 0.2 - sleep_time)
             else:
-                print("WARN: Main loop took long to process: ", 0.1 - sleep_time)
+                print("WARN: Main loop took long to process: ", 0.2 - sleep_time)
         self.sensor_fuser.stop()
 
 
 if __name__ == "__main__":
     mock_actuator=False
     coordinator = Coordinator(mock_actuator=mock_actuator)
-    coordinator.start_trip("0x4", "0x7", use_cv=False)
+    coordinator.start_trip("0xc", "0xd", use_cv=False)     # Route tracking
+    #coordinator.start_trip("0x6", "0x7", use_cv=False)      # Obstacle
     try:
         while True:
             time.sleep(0.1)
     except KeyboardInterrupt:
         print("INFO: Shutting down")
-        ActuatorBridge(mock=mock_actuator).send(Impulses(0, 0, 0))
+        ActuatorBridge(mock=mock_actuator).send(Impulses(0, 0, 1))
         coordinator.stop_system()
-        time.sleep(1)
+        for x in range(5):
+            time.sleep(0.2)
+            ActuatorBridge(mock=mock_actuator).send(Impulses(0, 0, 1))
+        time.sleep(0.2)
         ActuatorBridge(mock=mock_actuator).send(Impulses(0, 0, 0))
         try:
             sys.exit(0)
