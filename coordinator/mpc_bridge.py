@@ -14,7 +14,8 @@ class MPCBridge(object):
     LAT_FACTOR = 111_320            # approximation
     LON_FACTOR = 40_075_000/360
 
-    CRUISING_VELOCITY = 3.0
+    CRUISING_VELOCITY = 2.5
+    TTC_CUTOFF = 4.0
 
     def __init__(self, silent=False, simulation_mode=False, debug=False):
         self.silent = silent
@@ -85,7 +86,7 @@ class MPCBridge(object):
 
     def propagate_or_neutralize(self, para, speed, target):
         # We should not be confused by arbitrary directions, when driving with low speeds
-        if speed > 1.0 and para!=0.0:
+        if speed > 0.8 and para!=0.0:
             return para / 180 * 3.14
         else:
             return target
@@ -117,8 +118,8 @@ class MPCBridge(object):
             print("ERROR: Garbage values for GPS. Skipp cycle")
             return Impulses(0, 0, 0)
 
-        if time_to_collision < 3 and cv_available: self.step_cv_obst(parameters, x_current, y_current, v_target, yaw_rate_target, time_to_collision)
-        elif time_to_collision < 3 and gps_available: self.step_gps_obst(parameters, x_current, y_current, v_target, yaw_target, time_to_collision)
+        if time_to_collision < MPCBridge.TTC_CUTOFF and cv_available: self.step_cv_obst(parameters, x_current, y_current, v_target, yaw_rate_target, time_to_collision)
+        elif time_to_collision < MPCBridge.TTC_CUTOFF and gps_available: self.step_gps_obst(parameters, x_current, y_current, v_target, yaw_target, time_to_collision)
         elif cv_available: self.step_cv_unconstr(parameters, x_current, y_current, v_target, yaw_rate_target)
         elif gps_available: self.step_gps_unconstr(parameters, x_current, y_current, v_target, yaw_target)
         else: 

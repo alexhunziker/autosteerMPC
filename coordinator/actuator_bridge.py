@@ -21,7 +21,7 @@ class ActuatorBridge(object):
         self.busy = False # Because the vehicle is slow with processing, otherwise signals get lost
         self.smoothing = smoothing
 
-    def send(self, impulses):
+    def send(self, impulses, v=0):
         if self.busy:
             print("INFO: Commands skipped, actuator bridge is busy")
             return
@@ -38,11 +38,13 @@ class ActuatorBridge(object):
             if abs(tmp_max_allowed)<abs(impulses.steering):
                 impulses.steering = tmp_max_allowed
                 print("INFO: Smoothened steering to", impulses.steering)
-        steering_angle = str(int(-impulses.steering / 3.14 * 180) + 50)
+            if v > 1:
+                impulses.steering = impulses.steering / v
+        steering_angle = str(int(-impulses.steering / 3.14 * 180 ) + 47)
         # The engine is powerful, limit acceleration and speed
 
-        if impulses.throttle > 0.5:
-            impulses.throttle = 0.5
+        if impulses.throttle > 0.7:
+            impulses.throttle = 0.7
             print("INFO: Throttle adjusted")
         throttle = str(int(impulses.throttle*10))
 
@@ -83,9 +85,9 @@ if __name__ == "__main__":
 
         print("Test loop...")
         while True:
-            actuatorBridge.send(Impulses(-0.2, 1.0, 0.0))
+            actuatorBridge.send(Impulses(-0.0, 1.0, 0.0))
             time.sleep(2)
-            actuatorBridge.send(Impulses(0.2, 0.0, 0.0))
+            actuatorBridge.send(Impulses(0.0, 0.0, 0.0))
             time.sleep(2)
         time.sleep(2)
         actuatorBridge.send(Impulses(0, 0.0, 0.0))

@@ -38,7 +38,7 @@ class Coordinator(object):
         self.health_checker.startup_done()
 
     def main_loop(self):
-        time.sleep(2)       # Wait until Arduino is ready
+        time.sleep(10)       # Wait until Arduino & GPS is ready
         while self.active:
             print("INFO: System time is", str(datetime.datetime.now()))
             loop_start = time.time()
@@ -61,7 +61,7 @@ class Coordinator(object):
 if __name__ == "__main__":
     mock_actuator=False
     coordinator = Coordinator(mock_actuator=mock_actuator)
-    coordinator.start_trip("0xc", "0xd", use_cv=False)     # Route tracking
+    coordinator.start_trip("0x8", "0xd", use_cv=False)     # Route tracking
     #coordinator.start_trip("0x6", "0x7", use_cv=False)      # Obstacle
     try:
         while True:
