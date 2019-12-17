@@ -14,8 +14,8 @@ Vx = 2.0;
 
 % Create State Space Matrixes
 Ac = [0, 1, 0, 0, 0;
-       0, -(cr*lr^2+cf*lf^2)/(iz*Vx), -(cr*lr-cf*lf)/iz, 0, 0;
-       0, 1-(cr*lr-cf*lf)/(m*Vx^2), -(cf+cr)/(m*Vx), 0, 0;
+       0, -(cr*lr^2+cf*lf^2)/(iz*Vx), (cr*lr-cf*lf)/iz, 0, 0;
+       0, -1-(cf*lf-cr*lr)/(m*Vx^2), -(cf+cr)/(m*Vx), 0, 0;
        0, 0, 0, -1/10, 0;
        0, 0, 0, -1/Vx, 0];
        
