@@ -34,7 +34,7 @@ class UltrasonicSensor(object):
         distance = self.calculate_distance_cm(measurement)
         if distance > 500:
             if self.verbose:
-                print("DEBUG: Distance out of bounds, assuming max value")
+                print("DEBUG: Ultrasonic distance out of bounds, assuming max value")
             distance = 500
         return distance
 
@@ -49,7 +49,6 @@ class UltrasonicSensor(object):
     def receive_signal(self):
         t_0 = time.time()
         GPIO.setup(UltrasonicSensor.GPIO_PIN, GPIO.IN)
-        # Refactored from while to for, check if it still works
         for count in range(UltrasonicSensor.TIMEOUT_1):
             if GPIO.input(UltrasonicSensor.GPIO_PIN):
                 break
@@ -57,12 +56,11 @@ class UltrasonicSensor(object):
             print("M1 failed")
             return None
         t_1 = time.time()
-        # Check if this works
         for count in range(UltrasonicSensor.TIMEOUT_2):
             if not GPIO.input(UltrasonicSensor.GPIO_PIN):
                 break
         if count >= UltrasonicSensor.TIMEOUT_2-1:
-            print("M2 failed")
+            print("ERROR: Ultrasonic M2 failed")
             return None
         self.last_valid = time.time()
         t_2 = time.time()

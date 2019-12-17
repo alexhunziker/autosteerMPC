@@ -46,7 +46,7 @@ extern "C"
     {
 
         matrix<double, NR_OF_STATES, 1> current_state;
-        current_state = y_offset, yaw, yaw_rate, schwimm_angle, yaw_rate_target, speed; // TODO: yaw rate target here sensible?
+        current_state = y_offset, yaw, yaw_rate, schwimm_angle, yaw_rate, speed;
 
         mpc<NR_OF_STATES, NR_OF_CONTROLS, PREDICTION_HORIZON> mpc_controller = get_best_mpc_object(speed);
 

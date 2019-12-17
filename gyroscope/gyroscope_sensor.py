@@ -1,4 +1,7 @@
 #!/usr/bin/python
+
+# Source: https://tutorials-raspberrypi.de/rotation-und-beschleunigung-mit-dem-raspberry-pi-messen/
+
 import smbus
 import math
 import time
